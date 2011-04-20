@@ -27,7 +27,7 @@ using OpenSim.Region.CoreModules;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using Aurora.CoreApplicationPlugins;
+using OpenSim.CoreApplicationPlugins;
 using Aurora.Framework;
 using OpenSim.Framework;
 using OpenSim;
@@ -651,8 +651,6 @@ namespace Aurora.Modules.City
             }
 
             m_log.Info("[CITY BUILDER]: Auto generating the city.");
-            cityMap = new CityMap();
-            citySeed = seed_value;
 
             //  Now we need to ask some basic values for the city generation, we already have
             // the base seed value as this is part of the 'city generate' command, now what
@@ -672,18 +670,26 @@ namespace Aurora.Modules.City
             cityOwner = MainConsole.Instance.CmdPrompt("City Owner ", cityOwner);
 
             //  Obtain the scene manager, scene graph and region info connector from the server.
+            if (simulationBase.Equals(null))
+            {
+                m_log.Info("[CITYBUILDER]: Unable to continue, no simulation base!");
+                return (false);
+            }
             sceneManager = simulationBase.ApplicationRegistry.RequestModuleInterface<SceneManager>();
             sceneGraph = simulationBase.ApplicationRegistry.RequestModuleInterface<SceneGraph>();
             m_connector = simulationBase.ApplicationRegistry.RequestModuleInterface<IRegionInfoConnector>();
+
             if (sceneManager.Equals(null))
             {
                 m_log.Error("NO SCENE MANAGER FOUND.");
                 return (false);
             }
             //  Construct the data instance for a city map to hold the total regions in the simulation.
+            cityMap = new CityMap();
+            citySeed = seed_value;
             cityMap.cityRegions = new Scene[r, r];
 
-            m_log.InfoFormat("[CITY BUILDER]: r {0}, sqrt(r) {1}", r, (int)System.Math.Sqrt(r));
+            m_log.InfoFormat("[CITY BUILDER]: r {0}", r);
 
             for (int rx = 0; rx < r; rx++)
             {
