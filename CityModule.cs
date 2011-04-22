@@ -244,7 +244,7 @@ namespace Aurora.Modules.City
     /// <summary>
     /// This is the main class that deals with this City Builder Module for Aurora/OpenSim server.
     /// </summary>
-    public class CityModule : IApplicationPlugin, ICityModule, ISharedRegionModule
+    public class CityModule : IApplicationPlugin, ICityModule//, ISharedRegionModule
     {
         /// <summary>
         /// This section of the module deals with the properties that are specific to the city or to the
@@ -675,6 +675,10 @@ namespace Aurora.Modules.City
                 m_log.Info("[CITYBUILDER]: Unable to continue, no simulation base!");
                 return (false);
             }
+            /*
+             * Change following to:
+             *      m_connector = Aurora.DataManager.DataManager.RequestPlugin<IRegionInfoConnector>();
+             */
             sceneManager = simulationBase.ApplicationRegistry.RequestModuleInterface<SceneManager>();
             sceneGraph = simulationBase.ApplicationRegistry.RequestModuleInterface<SceneGraph>();
             m_connector = simulationBase.ApplicationRegistry.RequestModuleInterface<IRegionInfoConnector>();
@@ -868,6 +872,7 @@ namespace Aurora.Modules.City
         }
 
         #endregion
+        /*
         /// <summary>
         /// ISharedRegionModule interface specifics methods, some are shared with IApplicationPlugin
         /// interface methods. REMOVED.
@@ -983,6 +988,7 @@ namespace Aurora.Modules.City
         }
 
         #endregion
+        */
         /// <summary>
         /// Console command interface method.
         /// </summary>
