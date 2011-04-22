@@ -31,6 +31,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Aurora.BotManager, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
+    <Reference Include="Aurora.CoreApplicationPlugins, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="Aurora.DataManager, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\bin\Aurora.DataManager.dll</HintPath>
@@ -39,6 +41,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\bin\Aurora.Framework.dll</HintPath>
     </Reference>
+    <Reference Include="Aurora.Modules, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="Aurora.Services.DataService, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\bin\Aurora.Services.DataService.dll</HintPath>
@@ -67,10 +70,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\bin\OpenMetaverseTypes.dll</HintPath>
     </Reference>
-    <Reference Include="OpenSim.CoreApplicationPlugins, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\bin\OpenSim.CoreApplicationPlugins.dll</HintPath>
-    </Reference>
     <Reference Include="OpenSim.Data, Version=0.6.5.28577, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\bin\OpenSim.Data.dll</HintPath>
@@ -79,6 +78,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\bin\OpenSim.Framework.dll</HintPath>
     </Reference>
+    <Reference Include="OpenSim.Region.ClientStack.LindenUDP, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="OpenSim.Region.CoreModules, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\bin\OpenSim.Region.CoreModules.dll</HintPath>
@@ -87,6 +87,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\bin\OpenSim.Region.Framework.dll</HintPath>
     </Reference>
+    <Reference Include="OpenSim.Region.OptionalModules, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="OpenSim.Services, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\bin\OpenSim.Services.dll</HintPath>
@@ -107,6 +108,7 @@
   <ItemGroup>
     <Compile Include="CityBuilding.cs" />
     <Compile Include="CityModule.cs" />
+    <Compile Include="CityMap.cs" />
     <Compile Include="ICityModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
