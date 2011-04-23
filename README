@@ -17,15 +17,17 @@ TODO:
 	Expand framework for future features.
 	Upgrade the internal methods with lots more functionality.
 	Primitive creation and manipulation via City Builder.
-	Add scripts and events to the city as a whole and for individual things, like buildings, cars etc
-	Add import and export features for generated cities along with game cities (forex Liberty City).
+	Add scripts and events to the city as a whole and for individual things, like buildings,
+	cars etc Add import and export features for generated cities along with game cities 
+	(forex Liberty City).
 
 FUTURE:
 
-	Paint the sky blue with pink dots, erm anything is a potential possibility, remote admin for the
-	module perhaps, transfer of buildings, land etc through any 'currency' services available.
-	To be able to simulate the growth and development of the city, altough this will only happen when 
-	a currency system has been added to Aurora to allow for an AI driven marketplace economy for the 
-	city to be used, with potential for linking to other cities for 'trade'.
-	Provide a 'job' market that users can take and be paid in world currency for, although this role
-	will probably be taken by the bots that Aurora has with some extra behaviour added to them.
+	Paint the sky blue with pink dots, erm anything is a potential possibility, remote admin
+	for the module perhaps, transfer of buildings, land etc through any 'currency' services 
+	available. To be able to simulate the growth and development of the city, altough this 
+	will only happen when a currency system has been added to Aurora to allow for an AI driven 
+	marketplace economy for the city to be used, with potential for linking to other cities 
+	for 'trade'. Provide a 'job' market that users can take and be paid in world currency for,
+	although this role will probably be taken by the bots that Aurora has with some extra 
+	behaviour added to them.
