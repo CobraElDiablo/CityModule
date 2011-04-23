@@ -14,13 +14,20 @@ using System.Linq;
 using System.Text;
 using System.Security.Cryptography;
 using System.Net;
+
 using log4net;
+
 using Nini;
 using Nini.Config;
+
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
+
 using Aurora.Services.DataService;
 using Aurora.Simulation.Base;
+using Aurora.Framework;
+
+using OpenSim;
 using OpenSim.Data;
 using OpenSim.Region;
 using OpenSim.Region.CoreModules;
@@ -28,9 +35,7 @@ using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.CoreApplicationPlugins;
-using Aurora.Framework;
 using OpenSim.Framework;
-using OpenSim;
 
 namespace Aurora.Modules.City
 {
@@ -611,6 +616,15 @@ namespace Aurora.Modules.City
             get { return sceneGraph; }
         }
 
+        public Vector2 CitySize
+        {
+            get
+            {
+                Vector2 size = new Vector2((float)cityMap.cityRegions.GetUpperBound(0), (float)cityMap.cityRegions.GetUpperBound(1));
+                return size;
+            }
+        }
+
         #endregion
         /// <summary>
         /// This section deals with the inherited interface IApplicationPlugin, note some methods
@@ -630,7 +644,7 @@ namespace Aurora.Modules.City
             // file, web or MySQL based in reality. Finally call an internal method that installs
             // the command console commands and alters some internal properties, indicating that
             // the module is loaded, enabled and ready for use.
-            m_log.Info("[CITY BUILDER]: Version 0.0.0.9 ");
+            m_log.Info("[CITY BUILDER]: Version 0.0.0.10 ");
             simulationBase = openSim;
 //            sceneManager = simulationBase.ApplicationRegistry.RequestModuleInterface<SceneManager>();
 //            sceneGraph = simulationBase.ApplicationRegistry.RequestModuleInterface<SceneGraph>();

@@ -16,6 +16,14 @@ namespace Aurora.Framework
         {
             get;
         }
+
+        Vector2 CitySize
+        {
+            get;
+        }
+
+
+
     }
 
 }

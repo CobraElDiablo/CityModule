@@ -18,14 +18,10 @@ using OpenSim.Region.CoreModules;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
-using OpenSim.CoreApplicationPlugins;
 using Aurora.Framework;
 using OpenSim.Framework;
 using OpenSim;
 
-/// <summary>
-/// Summary description for Class1
-/// </summary>
 namespace Aurora.Modules.City
 {
     /// <summary>

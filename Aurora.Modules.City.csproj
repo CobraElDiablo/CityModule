@@ -31,7 +31,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Aurora.BotManager, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="Aurora.CoreApplicationPlugins, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="Aurora.DataManager, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -111,6 +110,9 @@
     <Compile Include="CityMap.cs" />
     <Compile Include="ICityModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
