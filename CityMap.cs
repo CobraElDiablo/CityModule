@@ -95,6 +95,11 @@ namespace Aurora.Modules.City
             return (true);
         }
 
+        public bool ClaimPlot(BuildingPlot plot)
+        {
+            return (false);
+        }
+
         public bool AddScene(Scene scene, bool central)
         {
             if (scene.Equals(null))

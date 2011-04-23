@@ -29,6 +29,12 @@ namespace Aurora.Modules.City
     /*
      *  Building usage this is a list of buildings and landmarks used by ArcGIS.
      *  
+     * struct {
+     *  major,          8 options needed (building,Military,locale,landmark,Recreation,racetrak,cemetry,complex)
+     *  minor,          repeat for each sub class of building.
+     *  subtype1,       for each actual building type. (perhaps this needs to be bigger than 8 bits?)
+     *  subtype1 : byte; placeholder/filler for now.
+     *  } buildingdef; // Idea.
      * 0    Building    General
      * 1    Building    Community Center
      * 2    Building    Museum
@@ -151,12 +157,17 @@ namespace Aurora.Modules.City
      * 121  Complex     Education           High School
      * 122  Complex     Education           Middle/Junior
      * 123  Complex     Education           Elementary/Nursery
+     * 
+     * ???  Complex     Station
+     *      Complex     Docks
+     *      Complex     Airport
+     *      Landmark    damm/lakes/beaches/mountains etc
      */
 
     /// <summary>
     /// If a plot of land has been claimed by something in the city.
     /// </summary>
-    public enum PlotClaimType : byte
+    public enum PlotClaimType : uint
     {
         CLAIM_NONE = 0,     //  Land is not claimed.
         CLAIM_TRANSPORT=1,    //  The road or transport system.
@@ -168,6 +179,8 @@ namespace Aurora.Modules.City
         // And note the complex can have lots of different buildings which may just have the connection of being
         // on the same plot and have no 'business' with each other.
         CLAIM_MILITARY=64,     //  Claimed by the military.
+        CLAIM_LANDMARK=128,     // This claimed is landmarked (db).
+        CLAIM_LOCALE=256,       // Unique to this claim, unknown tag for now.
         CLAIM_COUNT         //  END_OF_ENUM_MARKER
     };
 
@@ -307,6 +320,7 @@ namespace Aurora.Modules.City
         private UUID buildingGUID = UUID.Random();  //  Unique to either a group (complex) or single building.
         private UUID buildingUUID = UUID.Random();  //  Unique for this building
         private UUID buildingOwner = UUID.Zero; // Should this be the same as the SceneObjectGroup 'owner'?
+        private Scene scene = null; // Which scene or region this building belongs too, needed to primitive manipulation.
         #endregion
 
         #region Internal Methods
@@ -409,6 +423,11 @@ namespace Aurora.Modules.City
             PrimitiveBaseShape cubeShape = PrimitiveBaseShape.CreateBox();// new PrimitiveBaseShape();
             cubeShape.ToOmvPrimitive(pos, Quaternion.Identity);
             cubeShape.Scale = dim;
+
+            // place into the region at given position
+            // texture the object from the given texture id, if this texture is not found
+            // then default to use one of the standard textures it knows about that
+            // during first run it will create and store in the asset database (todo).
             return cubeShape;
 //            return createCube(pos, dim, TextureID);
         }
@@ -454,14 +473,21 @@ namespace Aurora.Modules.City
             UUID owner, IScene scene, string name ):base(owner,new Vector3(plot.xpos,21,plot.ypos),
             Quaternion.Identity, PrimitiveBaseShape.CreateBox(), name, scene)
         {
-            //  Start the process of constructing a building given the parameters specified.
+            //  Start the process of constructing a building given the parameters specified. For
+            // truly random buildings change the following value (6) too another number, this is
+            // used to allow for the buildings to be fairly fixed during research and development.
             buildingSeed = CityModule.randomValue(6);
             buildingType = type;
             buildingPlot = plot;
             buildingFlags = flags;
-            if ( !owner.Equals(UUID.Zero) )
+            //  Has a valid owner been specified, if not use the default library owner (i think) of the zero uuid.
+            if (!owner.Equals(UUID.Zero))
                 buildingOwner = owner;
+            else
+                buildingOwner = UUID.Zero;
 
+            //  Generate a unique value for this building and it's own group if it's part of a complex,
+            // otherwise use the zero uuid for group (perhaps it should inherit from the city?)
             buildingUUID = UUID.Random();
             buildingGUID = UUID.Random();
 
@@ -479,6 +505,17 @@ namespace Aurora.Modules.City
                     createBlocky();
                     break;
                 case BuildingType.BUILDING_LOCALE:
+                    switch ( CityModule.randomValue(8) )
+                    {
+                        case 0:
+                            OpenSim.Framework.MainConsole.Instance.Output("Locale general.", log4net.Core.Level.Info);
+                            createSimple();
+                            break;
+                        case 1:
+                            OpenSim.Framework.MainConsole.Instance.Output("locale 1", log4net.Core.Level.Info);
+                            createBlocky();
+                            break;
+                    }
                     break;
                 case BuildingType.BUILDING_CIVIL:
                     createTower();
