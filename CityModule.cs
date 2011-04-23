@@ -397,10 +397,46 @@ namespace Aurora.Modules.City
 
             string ClientstackDll = configSource.Configs["Startup"].GetString("ClientStackPlugin", "OpenSim.Region.ClientStack.LindenUDP.dll");
 
+            if (ClientstackDll.Length <= 0)
+            {
+                m_log.Info("[CITY BUILDER]: Unable to find ClientStackPlugin from configs");
+                return (false);
+            }
+
             IClientNetworkServer clientServer = AuroraModuleLoader.LoadPlugin<IClientNetworkServer>(ClientstackDll);
-            clientServer.Initialise(
-                    listenIP, ref port, 0, region.m_allow_alternate_ports,
-                    configSource, circuitManager);
+            bool fine = false;
+            bool valid = false;
+            int tries = 10;
+
+            while (!fine)
+            {
+                if (tries <= 0)
+                    break;
+                try
+                {
+                    clientServer.Initialise(listenIP, ref port, 0, region.m_allow_alternate_ports,
+                        configSource, circuitManager);
+                    fine = true;
+                    valid = true;
+                }
+                catch
+                {
+                    fine = false;
+                    port++;
+                    tries-=2;
+                }
+            }
+
+            if (fine && valid)
+            {
+                m_log.Info("[CITY BUILDER]: Region created.");
+            }
+            else
+            {
+                m_log.Info("[CITY BUILDER]: Failed.");
+                return (false);
+            }
+
 
             region.InternalEndPoint.Port = (int)port;
 
@@ -652,8 +688,17 @@ namespace Aurora.Modules.City
 //            sceneManager = simulationBase.ApplicationRegistry.RequestModuleInterface<SceneManager>();
 //            sceneGraph = simulationBase.ApplicationRegistry.RequestModuleInterface<SceneGraph>();
 //            m_connector = simulationBase.ApplicationRegistry.RequestModuleInterface<IRegionInfoConnector>();
+            configSource = simulationBase.ConfigSource;
+            cityConfig = configSource.Configs["CityBuilder"];
+            if (cityConfig.Equals(null))
+            {
+                m_log.Info("[CITY BUILDER]: No configuration data found.");
+            }
+            else
+            {
+                m_log.Info("[CITY BUILDER]: Configuration found, stored.");
+            }
             InstallModule();
-
         }
         /// <summary>
         /// 
