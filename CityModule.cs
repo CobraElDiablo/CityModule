@@ -34,6 +34,9 @@ using OpenSim.Region.CoreModules;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+//  This needs to be changed to Aurora.CoreApplicationPlugins, it was working
+// but now has revereted to not recognising the namespace despite having added
+// the dll as a reference and the project itself as a dependancy of City Builder.
 using OpenSim.CoreApplicationPlugins;
 using OpenSim.Framework;
 
@@ -659,6 +662,26 @@ namespace Aurora.Modules.City
         public void ReloadConfiguration(IConfigSource config)
         {
             m_log.Info("CityModule.ReloadConfiguration");
+            configSource = config;
+
+            cityConfig = config.Configs["CityBuilder"];
+            if (cityConfig != null)
+            {
+                cityName = cityConfig.GetString("Name", "01");
+                cityOwner = cityConfig.GetString("CityOwner", "Cobra ElDiablo");
+                citySeed = randomValue(65535);
+                //  Valid city name and owner. Note that validation of regions, plots or
+                // buildings does not take place.
+                if (cityName.Length > 0 && cityOwner.Length > 0)
+                    m_fEnabled = true;
+                else
+                    m_fEnabled = false;
+            }
+            else
+            {
+                m_log.Warn("Configuration not found.");
+                m_fEnabled = false;
+            }
         }
 
         public void Start()
@@ -699,123 +722,6 @@ namespace Aurora.Modules.City
         }
 
         #endregion
-        /*
-        /// <summary>
-        /// ISharedRegionModule interface specifics methods, some are shared with IApplicationPlugin
-        /// interface methods. REMOVED.
-        /// </summary>
-        /// <param name="range"></param>
-        /// <returns></returns>
-        #region ISharedRegionModule interface
-
-        public void Initialise(IConfigSource config)
-        {
-            configSource = config;
-            
-            cityConfig = config.Configs["CityBuilder"];
-            if (cityConfig != null)
-            {
-                cityName = cityConfig.GetString("Name", "01");
-                cityOwner = cityConfig.GetString("CityOwner", "Cobra ElDiablo");
-                citySeed = randomValue(65535);
-                if (cityName.Length > 0 && cityOwner.Length > 0)
-                    m_fEnabled = true;
-                else
-                    m_fEnabled = false;
-            }
-            else
-            {
-                m_log.Warn("Configuration not found.");
-                m_fEnabled = false;
-            }
-            if (m_fInitialised)
-                return;
-            InstallModule();
-        }
-
-        /// <summary>
-        /// This method is called for every scene, or region, that is present on the
-        /// single instance of the server. Note this is standalone tested only at present.
-        /// </summary>
-        /// <param name="scene">The scene, or region being added to the server instance and thus this module.</param>
-        public void AddRegion(Scene scene)
-        {
-            //  If the module is not enabled do not add anything.
-            if (!m_fEnabled || scene.Equals(null))
-                return;
-
-//            bool flag = false;
-
-            //  Now this is a single module instance that deals with all regions within
-            // the server instance. We need to register ourselves with ALL regions that
-            // are being added to the server.
-            m_log.InfoFormat("[CITY BUILDER]: Adding region {0}.", scene.RegionInfo.RegionName);
-            scene.RegisterModuleInterface<ISharedRegionModule>(this);
-            cityMap.AddScene(scene, true);
-//            if (
-//                !cityMap.Equals(null) && !scene.Equals(null) && 
-//                cityMap.cityRegions.GetLength(0)>0 && cityMap.cityRegions.GetLength(1)>0
-//                )
-//            {
-//                cityMap.cityRegions[scene.RegionInfo.RegionLocX % cityMap.cityRegions.GetUpperBound(0),
-//                    scene.RegionInfo.RegionLocY % cityMap.cityRegions.GetUpperBound(1)] = scene;
-//                if (cityMap.centralRegions.Count() <= 0)
-//                {
-//                    cityMap.centralRegions.Add(scene);
-//                }
-//                flag = true;
-//            }
-//            if (flag)
-//            {
-//                m_log.Info("[CITY BUILDER]: addition successful.");
-//            }
-//            else
-//            {
-//                m_log.Info("[CITY BUILDER]: failed.");
-//            }
-        }
-
-        /// <summary>
-        /// This is called when each scene or region is being removed from the single instance
-        /// of the server.
-        /// </summary>
-        /// <param name="scene"></param>
-        public void RemoveRegion(Scene scene)
-        {
-            scene.UnregisterModuleInterface<ISharedRegionModule>(this);
-            cityMap.RemoveScene(scene);
-            m_log.InfoFormat("[CITY BUILDER] Removed region {0}", scene.RegionInfo.RegionName);
-        }
-
-        /// <summary>
-        /// This is called when each region has been loaded.
-        /// </summary>
-        /// <param name="scene"></param>
-        public void RegionLoaded(Scene scene)
-        {
-            m_log.InfoFormat("[CITY BUILDER] Region {0} loaded", scene.RegionInfo.RegionName);
-        }
-
-        /// <summary>
-        /// No idea, just copied from other modules from within Aurora, no idea what this method
-        /// is actually used for.
-        /// </summary>
-        public Type ReplaceableInterface
-        {
-            get { return null; }
-        }
-
-        /// <summary>
-        /// Returns true/false on whether the module is to be shared by all regions or each
-        /// region has it's own instance of this module.
-        /// </summary>
-        public bool IsSharedModule
-        {
-            get { return true; }
-        }
-
-        #endregion
-        */
         /// <summary>
         /// Console command interface method.
         /// </summary>
