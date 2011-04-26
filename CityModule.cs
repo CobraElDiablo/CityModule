@@ -97,7 +97,6 @@ namespace Aurora.Modules.City
         /// <param name="range"></param>
         /// <returns></returns>
         #region Internal Methods
-
         /// <summary>
         /// 
         /// </summary>
@@ -404,83 +403,75 @@ namespace Aurora.Modules.City
             }
 
             IClientNetworkServer clientServer = AuroraModuleLoader.LoadPlugin<IClientNetworkServer>(ClientstackDll);
-            bool fine = false;
-            bool valid = false;
-            int tries = 10;
+//            bool fine = false;
+//            bool valid = false;
+//            int tries = 10;
 
-            while (!fine)
-            {
-                if (tries <= 0)
-                    break;
+//            while (!fine)
+//            {
+//                if (tries <= 0)
+//                    break;
                 try
                 {
                     clientServer.Initialise(listenIP, ref port, 0, region.m_allow_alternate_ports,
                         configSource, circuitManager);
-                    fine = true;
-                    valid = true;
+                    m_log.InfoFormat("[CITY BUILDER]: Region {0} created @ {1},{2}", region.RegionName, x, y);
+//                    fine = true;
+//                    valid = true;
                 }
                 catch
                 {
-                    fine = false;
-                    port++;
-                    tries-=2;
+                    m_log.Info("[CITY BUILDER]: Unable to create region!");
+                    return (false);
+//                  fine = false;
+//                    port++;
+//                    tries-=2;
                 }
-            }
+//            }
 
-            if (fine && valid)
-            {
-                m_log.Info("[CITY BUILDER]: Region created.");
-            }
-            else
-            {
-                m_log.Info("[CITY BUILDER]: Failed.");
-                return (false);
-            }
-
+//            if (fine && valid)
+//            {
+//               m_log.Info("[CITY BUILDER]: Region created.");
+//            }
+//            else
+//            {
+//                m_log.Info("[CITY BUILDER]: Failed.");
+//                return (false);
+//            }
 
             region.InternalEndPoint.Port = (int)port;
 
+            //  Construct a new physics thingy for the scene.
+//            scene.PhysicsScene = new OpenSim.Framework.PhysicsScene();
+            //  Obtain links to any current modules installed and tell the new scene about them.
             scene.AddModuleInterfaces(simulationBase.ApplicationRegistry.GetInterfaces());
+            //  initialise the scene.
             scene.Initialize(region, circuitManager, clientServer);
-
-//            StartModules(scene);
-
-//            m_clientServers.Add(clientServer);
+            //  Tell the client server about the new scene.
+            clientServer.AddScene(scene);
 
             //Do this here so that we don't have issues later when startup complete messages start coming in
 //            m_localScenes.Add(scene);
 
             m_log.Info("[Modules]: Loading region modules");
-            IRegionModulesController controller;
-            if (simulationBase.ApplicationRegistry.TryRequestModuleInterface(out controller))
-            {
-                controller.AddRegionToModules(scene);
-            }
-            else
-                m_log.Error("[Modules]: The new RegionModulesController is missing...");
+//            IRegionModulesController controller;
+//            if (simulationBase.ApplicationRegistry.TryRequestModuleInterface(out controller))
+//            {
+//                controller.AddRegionToModules(scene);
+//            }
+//            else
+//                m_log.Error("[Modules]: The new RegionModulesController is missing...");
 
             //Post init the modules now
 //            PostInitModules(scene);
 
-            //Start the heartbeats
-            scene.StartHeartbeat();
+            //Start the heartbeats DONT START THE HEARTBEATS!
+//            scene.StartHeartbeat();
             //Tell the scene that the startup is complete 
             // Note: this event is added in the scene constructor
             scene.FinishedStartup("Startup", new List<string>());
-           
-            /*
-            try
-            {
-                m_connector.UpdateRegionInfo(region);
-                sceneManager.CreateRegion(region, out scene);
-                scene.RegisterModuleInterface<ICityModule>(this);
-            }
-            catch (System.Exception e)
-            {
-                m_log.Info("Exception caught when trying to create a region from the scene manager.");
-                return (false);
-            }
-            */
+
+            //  Job done, exit with OK.
             return (true);
         }
         /// <summary>
@@ -561,6 +552,10 @@ namespace Aurora.Modules.City
                     {
                         m_log.InfoFormat("[CITY BUILDER]: Failed to construct region at {0},{1}", rx, ry);
                         return (false);
+                    }
+                    else
+                    {
+                        m_log.InfoFormat("[CITY BUILDER: Region created @ {0},{1}", rx, ry);
                     }
                 }
             }
@@ -643,6 +638,9 @@ namespace Aurora.Modules.City
         }
 
         #endregion
+        /// <summary>
+        /// 
+        /// </summary>
         #region ICityModule Methods
 
         public SceneManager SceneManager
@@ -685,19 +683,29 @@ namespace Aurora.Modules.City
             // the module is loaded, enabled and ready for use.
             m_log.Info("[CITY BUILDER]: Version 0.0.0.10 ");
             simulationBase = openSim;
+            //  The following are not used.
 //            sceneManager = simulationBase.ApplicationRegistry.RequestModuleInterface<SceneManager>();
 //            sceneGraph = simulationBase.ApplicationRegistry.RequestModuleInterface<SceneGraph>();
 //            m_connector = simulationBase.ApplicationRegistry.RequestModuleInterface<IRegionInfoConnector>();
             configSource = simulationBase.ConfigSource;
             cityConfig = configSource.Configs["CityBuilder"];
-            if (cityConfig.Equals(null))
+            if (cityConfig != null)
             {
-                m_log.Info("[CITY BUILDER]: No configuration data found.");
+                cityName = cityConfig.GetString("Name", "01");
+                cityOwner = cityConfig.GetString("CityOwner", "Cobra ElDiablo");
+                citySeed = randomValue(65535);
+                m_log.Info("[CITY BUILDER]: Configuration found, stored.");
             }
             else
             {
-                m_log.Info("[CITY BUILDER]: Configuration found, stored.");
+                m_log.Info("[CITY BUILDER]: No configuration data found.");
+                // automatically disable the module if a configuration is not found. You can
+                // manually enable the module and then set its internal properties before using
+                // it via the server command console prompt.
+                m_fEnabled = false;
             }
+
+            //  Install the module, does not alter the enabled flag!
             InstallModule();
         }
         /// <summary>
@@ -707,44 +715,29 @@ namespace Aurora.Modules.City
         public void ReloadConfiguration(IConfigSource config)
         {
             m_log.Info("CityModule.ReloadConfiguration");
-            configSource = config;
-
-            cityConfig = config.Configs["CityBuilder"];
-            if (cityConfig != null)
-            {
-                cityName = cityConfig.GetString("Name", "01");
-                cityOwner = cityConfig.GetString("CityOwner", "Cobra ElDiablo");
-                citySeed = randomValue(65535);
-                //  Valid city name and owner. Note that validation of regions, plots or
-                // buildings does not take place.
-                if (cityName.Length > 0 && cityOwner.Length > 0)
-                    m_fEnabled = true;
-                else
-                    m_fEnabled = false;
-            }
-            else
-            {
-                m_log.Warn("Configuration not found.");
-                m_fEnabled = false;
-            }
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
         public void Start()
         {
             m_log.Info("CityModule.Start");
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
         public void PostStart()
         {
             m_log.Info("CityModule.PostStart");
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
         public void Close()
         {
             m_log.Info("[CITY BUILDER]: Terminating.");
             m_fEnabled = false;
         }
-
         /// <summary>
         /// This is called when the module has been loaded.
         /// </summary>
@@ -752,7 +745,6 @@ namespace Aurora.Modules.City
         {
             m_log.Info("[CITY BUILDER] finished initialising.");
         }
-
         /// <summary>
         /// Returns the name of the module, "City Builder Module".
         /// </summary>
@@ -760,12 +752,13 @@ namespace Aurora.Modules.City
         {
             get { return "CityBuilder"; }
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
         public void Dispose()
         {
             m_log.Info("CityModule.Dispose");
         }
-
         #endregion
         /// <summary>
         /// Console command interface method.
@@ -940,6 +933,15 @@ namespace Aurora.Modules.City
             sceneGraph.AddNewPrim(UUID.Zero, UUID.Zero, pos, Quaternion.Identity, cubeShape);
             return cubeShape;
         }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="range"></param>
+        /// <returns></returns>
+//        public delegate void onRegionHeartbeat()
+//        {
+//            ;
+//        }
         #endregion
 
     }
