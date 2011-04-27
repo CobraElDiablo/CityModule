@@ -448,12 +448,12 @@ namespace Aurora.Modules.City
             //  initialise the scene.
             scene.Initialize(region, circuitManager, clientServer);
             //  Tell the client server about the new scene.
-            clientServer.AddScene(scene);
+//            clientServer.AddScene(scene);
 
             //Do this here so that we don't have issues later when startup complete messages start coming in
 //            m_localScenes.Add(scene);
 
-            m_log.Info("[Modules]: Loading region modules");
+//            m_log.Info("[Modules]: Loading region modules");
 //            IRegionModulesController controller;
 //            if (simulationBase.ApplicationRegistry.TryRequestModuleInterface(out controller))
 //            {
@@ -555,7 +555,7 @@ namespace Aurora.Modules.City
                     }
                     else
                     {
-                        m_log.InfoFormat("[CITY BUILDER: Region created @ {0},{1}", rx, ry);
+                        m_log.InfoFormat("[CITY BUILDER]: Region created @ {0},{1}", rx, ry);
                     }
                 }
             }
