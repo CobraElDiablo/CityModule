@@ -74,21 +74,39 @@ namespace Aurora.Modules.City
         /// </summary>
         #region Internal Members
 
+        //  The start port number for any generated regions, this will increment for every
+        // region that the plugin produces.
         private static int startPort = 9500;
+        //  Determines whether the plugin is enabled or not, if disabled then commands issued
+        // on the command console will be ignored.
         private bool m_fEnabled = false;
+        //  Has the plugin been initialised (installed).
         private bool m_fInitialised = false;
-        private int citySeed = 0;
+        //  The random value to use for city generation.
+        private int citySeed = CityModule.randomValue(257);
+        // The name of the city, TODO add some for of random name generation for not only the
+        // city name but also for each region that is created.
         private string cityName = string.Empty;
+        // The owners name (avatar name first/last) that owns the entire region, defaults to
+        // nothing (same as UUID.Zero) which means it's owned by the server and not an avatar.
         private string cityOwner = string.Empty;
+        //  For logging purposes.
         public static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //  A map of the city, includes plots, buildings and all regions.
         private CityMap cityMap = null;
+        //  Configuration for the plugin.
         private IConfig cityConfig = null;
+        //  Configuration source from Aurora.
         private IConfigSource configSource = null;
+        //  Scene graph DEPRECIATED.
         public SceneGraph sceneGraph = null;
+        //  Scene manager for region creation.
         public SceneManager sceneManager = null;
+        // Simulation base from Aurora.
         private ISimulationBase simulationBase = null;
+        // Region info connector (database) DEPRECIATED
         private IRegionInfoConnector m_connector = null;
-
+        // Densities for various parts of the city, residential, commercial, industrial etc.
         private List<float> cityDensities = new List<float>();
         #endregion
         /// <summary>
@@ -349,15 +367,18 @@ namespace Aurora.Modules.City
 
             building = new CityBuilding(type, plot, flags, UUID.Zero,cityMap.centralRegions[0],"Building");
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
         public bool createRegion(int x, int y)
         {
             RegionInfo region = new RegionInfo();
 
             region.RegionName = "Region"+x+y;
             region.RegionID = UUID.Random();
-            region.RegionLocX = 100 + x;// * Constants.RegionSize);
-            region.RegionLocY = 100 + y;// * Constants.RegionSize);
             
             IPAddress address = IPAddress.Parse("0.0.0.0");
             region.InternalEndPoint = new IPEndPoint(address, startPort++);
@@ -377,7 +398,9 @@ namespace Aurora.Modules.City
             {
                 return(false);
             }
-            region.NumberStartup = 0+(x*y)+y;
+            region.RegionLocX = 100 + x * region.RegionSizeX;// * Constants.RegionSize);
+            region.RegionLocY = 100 + y * region.RegionSizeY;// * Constants.RegionSize);
+            region.NumberStartup = 0 + (x * y) + y;
             region.Startup = StartupType.Normal;
 
             m_log.Info("[CITY BUILDER]: Creating Region: (" + region.RegionName + ")");
@@ -387,7 +410,7 @@ namespace Aurora.Modules.City
 
             AgentCircuitManager circuitManager = new AgentCircuitManager();
             IPAddress listenIP = region.InternalEndPoint.Address;
-            Scene scene = new Scene();
+//            Scene scene = new Scene();
 
             if (!IPAddress.TryParse(region.InternalEndPoint.Address.ToString(), out listenIP))
                 listenIP = IPAddress.Parse("0.0.0.0");
@@ -403,6 +426,9 @@ namespace Aurora.Modules.City
             }
 
             IClientNetworkServer clientServer = AuroraModuleLoader.LoadPlugin<IClientNetworkServer>(ClientstackDll);
+            IScene iScene;
+            sceneManager.CreateRegion(region, out iScene);
+            cityMap.cityRegions[x, y] = (Scene)iScene;
 //            bool fine = false;
 //            bool valid = false;
 //            int tries = 10;
@@ -413,8 +439,9 @@ namespace Aurora.Modules.City
 //                    break;
                 try
                 {
-                    clientServer.Initialise(listenIP, ref port, 0, region.m_allow_alternate_ports,
-                        configSource, circuitManager);
+//                    clientServer.Initialise(listenIP, ref port, 0, region.m_allow_alternate_ports,
+//                        configSource, circuitManager);
+                    clientServer.AddScene(cityMap.cityRegions[x, y]);
                     m_log.InfoFormat("[CITY BUILDER]: Region {0} created @ {1},{2}", region.RegionName, x, y);
 //                    fine = true;
 //                    valid = true;
@@ -444,9 +471,10 @@ namespace Aurora.Modules.City
             //  Construct a new physics thingy for the scene.
 //            scene.PhysicsScene = new OpenSim.Framework.PhysicsScene();
             //  Obtain links to any current modules installed and tell the new scene about them.
-            scene.AddModuleInterfaces(simulationBase.ApplicationRegistry.GetInterfaces());
+            cityMap.cityRegions[x,y].AddModuleInterfaces(simulationBase.ApplicationRegistry.GetInterfaces());
             //  initialise the scene.
-            scene.Initialize(region, circuitManager, clientServer);
+//            scene.SceneManager.CreateRegion(region, out iScene);
+            cityMap.cityRegions[x,y].Initialize(region, circuitManager, clientServer);
             //  Tell the client server about the new scene.
 //            clientServer.AddScene(scene);
 
@@ -469,7 +497,7 @@ namespace Aurora.Modules.City
 //            scene.StartHeartbeat();
             //Tell the scene that the startup is complete 
             // Note: this event is added in the scene constructor
-            scene.FinishedStartup("Startup", new List<string>());
+            cityMap.cityRegions[x,y].FinishedStartup("Startup", new List<string>());
 
             //  Job done, exit with OK.
             return (true);
@@ -515,8 +543,8 @@ namespace Aurora.Modules.City
             m_log.InfoFormat("[CITY BUILDER]: Region size 256, x:{0} * y:{1} {2}, regions.", r, r, r * r);
             m_log.InfoFormat("[CITY BUILDER]: City area {0} m^2", (256 * r) * (256 * r));
 
-            cityName = MainConsole.Instance.CmdPrompt("City Name ", cityName);
-            cityOwner = MainConsole.Instance.CmdPrompt("City Owner ", cityOwner);
+            cityName = MainConsole.Instance.CmdPrompt("City Name ", "01");
+            cityOwner = MainConsole.Instance.CmdPrompt("City Owner ", "Cobra ElDiablo");
 
             //  Obtain the scene manager, scene graph and region info connector from the server.
             if (simulationBase.Equals(null))
@@ -524,11 +552,11 @@ namespace Aurora.Modules.City
                 m_log.Info("[CITYBUILDER]: Unable to continue, no simulation base!");
                 return (false);
             }
+            sceneManager = simulationBase.ApplicationRegistry.RequestModuleInterface<SceneManager>();
             /*
              * Change following to:
              *      m_connector = Aurora.DataManager.DataManager.RequestPlugin<IRegionInfoConnector>();
-             */
-            sceneManager = simulationBase.ApplicationRegistry.RequestModuleInterface<SceneManager>();
+             *
             sceneGraph = simulationBase.ApplicationRegistry.RequestModuleInterface<SceneGraph>();
             m_connector = simulationBase.ApplicationRegistry.RequestModuleInterface<IRegionInfoConnector>();
 
@@ -537,10 +565,13 @@ namespace Aurora.Modules.City
                 m_log.Error("NO SCENE MANAGER FOUND.");
                 return (false);
             }
+            */
             //  Construct the data instance for a city map to hold the total regions in the simulation.
             cityMap = new CityMap();
             citySeed = seed_value;
             cityMap.cityRegions = new Scene[r, r];
+            cityMap.cityPlots = new List<BuildingPlot>();
+            cityMap.cityBuildings = new List<CityBuilding>();
 
             m_log.InfoFormat("[CITY BUILDER]: r {0}", r);
 
@@ -569,14 +600,18 @@ namespace Aurora.Modules.City
              *      
              *      How can I create, delete and manipulate primitives without relying on an inworld script
              *      with an XMLRPC/HTTP, etc communications method as the maximum data size allowed is too small.
-            uint port = 0;
+             *
+            uint port = 9500;
+//            CityMap map = new CityMap();
+//            map.cityRegions = new Scene[10, 10];
+
+            sceneManager = simulationBase.ApplicationRegistry.RequestModuleInterface<SceneManager>();
             //  Here we construct a 10 x 10 region space for the city.
-            for (int rx = 0; rx < 10; rx++)
+            for (int rx = 0; rx < r; rx++)
             {
-                for ( int ry = 0; ry < 10; ry++)
+                for ( int ry = 0; ry < r; ry++)
                 {
-                    OpenSim.Framework.RegionInfo regionInfo = new OpenSim.Framework.RegionInfo();
-                    CityMap map = new CityMap();
+                    RegionInfo regionInfo = new RegionInfo();
 
                     regionInfo.RegionLocX = (100 + rx);
                     regionInfo.RegionLocY = (100 + ry);
@@ -590,31 +625,33 @@ namespace Aurora.Modules.City
                     regionInfo.m_allow_alternate_ports = false;
                     port++;
 
-                    IConfigSource configSource = new Nini.Config.IConfigSource();
-                    regionInfo.CreateIConfig(configSource);
-                    if (configSource != null)
-                    {
-                        configSource.AutoSave = true;
-                        configSource.Save();
-                    }
+//                    IConfigSource configSource = new Nini.Config.IConfigSource();
+//                    regionInfo.CreateIConfig(configSource);
+//                    if (configSource != null)
+//                    {
+//                        configSource.AutoSave = true;
+//                        configSource.Save();
+//                    }
 
-                    map.age = 0;
-                    map.multiRegion = true;
-                    map.cityPlots = new List<BuildingPlot>();
-                    map.cityBuildings = new List<CityBuilding>();
+//                    map.age = 0;
+//                    map.multiRegion = true;
 
                     try
                     {
-                        IScene scene;
-                        sceneManager.CreateRegion( regionInfo, out scene );
-                        map.sceneIF = scene;
-                        map.cityRegion.RegisterModuleInterface<ISharedRegionModule>(this);
-                        cityMap.Add(map);
+                        Scene scene;// = map.cityRegions[rx, ry];
+                        if (!sceneManager.Equals(null))
+                        {
+                            sceneManager.CreateRegion(regionInfo, out scene);
+                        }
+//                        cityMap.Add(map);
                         m_log.InfoFormat("[CITY BUILDER]: Region {0} created.", regionInfo.RegionName);
+                        cityMap.cityRegions[rx, ry] = (Scene)scene;
                     }
                     catch ( System.Exception E )
                     {
                         m_log.Info("[CITY BUILDER]: Exception caught when trying to create a region.");
+                        m_log.InfoFormat("[CITY BUILDER]: {0}", E.Message);
+                        m_log.InfoFormat("[CITY BUILDER]: {0}", E.ToString());
                         return( false );
                     }
                 }
@@ -933,15 +970,7 @@ namespace Aurora.Modules.City
             sceneGraph.AddNewPrim(UUID.Zero, UUID.Zero, pos, Quaternion.Identity, cubeShape);
             return cubeShape;
         }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="range"></param>
-        /// <returns></returns>
-//        public delegate void onRegionHeartbeat()
-//        {
-//            ;
-//        }
+
         #endregion
 
     }

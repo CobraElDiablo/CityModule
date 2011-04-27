@@ -43,7 +43,7 @@ namespace Aurora.Modules.City
 
         public List<Scene> centralRegions = new List<Scene>();          // This property can be used to store a list
         // of 'centers', for larger cities, that form the more densely packed regions, difference
-        // between the center of London for example and the 'suburbs'. The are considered 'hotzones'
+        // between the center of London for example and the 'suburbs'. These are considered 'hotzones'
         // where the majority of the tallest structures will be placed.
         public Scene[,] cityRegions;                //  An array of regions covered by this city.
         public List<BuildingPlot> cityPlots = new List<BuildingPlot>();        //  A list of all the plots in this city.
@@ -166,6 +166,28 @@ namespace Aurora.Modules.City
             }
 
             return (false);
+        }
+
+        public Scene this[int rx, int ry]
+        {
+            get
+            {
+                if (rx < 0 || ry < 0 || rx > cityRegions.GetUpperBound(0) || ry > cityRegions.GetUpperBound(1))
+                {
+                    return (null);
+                }
+                return (cityRegions[rx, ry]);
+            }
+            set
+            {
+                if (rx < 0 || ry < 0 || rx > cityRegions.GetUpperBound(0) || ry > cityRegions.GetUpperBound(1))
+                {
+                    return;
+                }
+                if (value == null)
+                    return;
+                cityRegions[rx,ry] = value;
+            }
         }
 
         #endregion
