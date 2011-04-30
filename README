@@ -31,3 +31,29 @@ FUTURE:
 	for 'trade'. Provide a 'job' market that users can take and be paid in world currency for,
 	although this role will probably be taken by the bots that Aurora has with some extra 
 	behaviour added to them.
+
+EXAMPLE CONFIGURATION FILE:
+
+	Create a new file CityBuilder.ini and place in the Configuration/Modules directory, copy 
+	and paste the following and alter as needed.
+
+;; New module, City Builder, allows for the construction of a city using a random seed value,
+;; import data for a city from other things like games, for example GTA IV for the pc. A
+;; final option is to allow a city that has been generated or imported to age, for the cities
+;; buildings to change over time, this is not so much an ageing process of the buildings themselves
+;; but more of how the city develops and expands over time.
+
+[CityBuilder]
+	DefaultCityName = CityVille
+	DefaultCityOwner = Cobra ElDiablo
+	DefaultCityEstate = Liquid Silicon Developments
+	DefaultRegionSize = 256
+	DefaultPrimCount = 100000
+	CentralRegionCount = 1
+	CityRegionCount = 1
+	Enabled = true
+	DefaultCitySeed = 0xC0BAE1D1AB10
+	DefaultStartPort = 9500
+	DefaultStartLocation = 9500,9500
+	DefaultLocationMode = Corner
+	DefaultCentralRegion = 9500,9500
