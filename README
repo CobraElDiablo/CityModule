@@ -8,12 +8,19 @@ CURRENT:	0.0.0.10
 
 	Module load and is recognised by Aurora, simple command console interface framework.
 	Some internal functionality for response to commands (does not perform any actions,
-	apart from the city generate command, note it WILL cause an exception, non Aurora fatal).
+	apart from the city generate command, note it may cause an exception, non Aurora fatal),
+	regions are generated along with owning user and estate/parcel information with conformations
+	from the user at the server command prompt.
+	Create a ini configuration file for City Builder and move it's options from AuroraModules.ini
 
 TODO:
 
-	Create a ini configuration file for City Builder and move it's options from AuroraModules.ini
-	Dynamic construction of regions within a server instance.
+	Dynamic construction of regions within a server instance, nearly 100% but not quite, at
+	present it will create regions that you can login to. Next is to allow for the creation
+	of the region, user, estate and parcel information from those supplied in the configuration
+	file without the need for conformation of options.
+	Adapt the region creation code to allow for dynamic repositioning of the regions if they
+	overlap any other region.
 	Expand framework for future features.
 	Upgrade the internal methods with lots more functionality.
 	Primitive creation and manipulation via City Builder.
