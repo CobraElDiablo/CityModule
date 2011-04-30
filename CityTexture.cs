@@ -28,7 +28,7 @@ using OpenSim.Region.Framework.Scenes;
 //  This needs to be changed to Aurora.CoreApplicationPlugins, it was working
 // but now has revereted to not recognising the namespace despite having added
 // the dll as a reference and the project itself as a dependancy of City Builder.
-using OpenSim.CoreApplicationPlugins;
+//using OpenSim.CoreApplicationPlugins;
 using OpenSim.Framework;
 
 namespace Aurora.Modules.City

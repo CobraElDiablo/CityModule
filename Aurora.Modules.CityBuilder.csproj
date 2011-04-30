@@ -106,6 +106,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CityBuilding.cs" />
+    <Compile Include="CityEntity.cs" />
+    <Compile Include="CityEntityManager.cs" />
+    <Compile Include="CityManager.cs" />
     <Compile Include="CityModule.cs" />
     <Compile Include="CityMap.cs" />
     <Compile Include="CityTexture.cs" />

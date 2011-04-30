@@ -34,13 +34,15 @@ using OpenSim.Region.CoreModules;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
+using OpenSim.Services.Interfaces;
 //  This needs to be changed to Aurora.CoreApplicationPlugins, it was working
 // but now has revereted to not recognising the namespace despite having added
 // the dll as a reference and the project itself as a dependancy of City Builder.
-using OpenSim.CoreApplicationPlugins;
+//using Aurora.CoreApplicationPlugins;
 using OpenSim.Framework;
+using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
-namespace Aurora.Modules.City
+namespace Aurora.Modules.CityBuilder
 {
 
     public enum GenerationStage : int
@@ -66,7 +68,7 @@ namespace Aurora.Modules.City
     /// <summary>
     /// This is the main class that deals with this City Builder Module for Aurora/OpenSim server.
     /// </summary>
-    public class CityModule : IApplicationPlugin, ICityModule//, ISharedRegionModule
+    public class CityModule : IApplicationPlugin, ICityModule
     {
         /// <summary>
         /// This section of the module deals with the properties that are specific to the city or to the
@@ -74,9 +76,14 @@ namespace Aurora.Modules.City
         /// </summary>
         #region Internal Members
 
+        private UserAccount m_DefaultUserAccount = null;
+        private EstateSettings m_DefaultEstate = null;
+        private IUserAccountService m_UserAccountService = null;
+        private LandData cityLandData = new LandData();
+
         //  The start port number for any generated regions, this will increment for every
         // region that the plugin produces.
-        private static int startPort = 9500;
+        private int startPort = 9500;
         //  Determines whether the plugin is enabled or not, if disabled then commands issued
         // on the command console will be ignored.
         private bool m_fEnabled = false;
@@ -90,6 +97,7 @@ namespace Aurora.Modules.City
         // The owners name (avatar name first/last) that owns the entire region, defaults to
         // nothing (same as UUID.Zero) which means it's owned by the server and not an avatar.
         private string cityOwner = string.Empty;
+        private string CityEstate = string.Empty;
         //  For logging purposes.
         public static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         //  A map of the city, includes plots, buildings and all regions.
@@ -108,6 +116,8 @@ namespace Aurora.Modules.City
         private IRegionInfoConnector m_connector = null;
         // Densities for various parts of the city, residential, commercial, industrial etc.
         private List<float> cityDensities = new List<float>();
+        private Vector2 m_DefaultStartLocation = new Vector2(9500, 9500);
+
         #endregion
         /// <summary>
         /// Internal methods private to the City Module.
@@ -207,67 +217,6 @@ namespace Aurora.Modules.City
         }
 
         /// <summary>
-        /// This method will lay claim to a plot of land in the city map.
-        /// </summary>
-        /// <param name="x">The desired x position of the sw corner of the plot.</param>
-        /// <param name="y">The desired y position of the sw corner of the plot.</param>
-        /// <param name="width">The desired width of the plot, x+width = x position for ne corner.</param>
-        /// <param name="depth">The desired depth of the plot, y+depth = y position for ne corner.</param>
-        /// <param name="val">The type of plot this is, ie does it have a building, road, etc on it.</param>
-        private void claim(int x, int y, int width, int depth, PlotClaimType val)
-        {
-            if (claimed(x, y, width, depth))
-                return;
-            cityMap.cityPlots.Add(makePlot(x, y, width, depth));
-        }
-
-        /// <summary>
-        /// Determine whether a defined area of land has been claimed by a plot already, it is
-        /// not concerned as to what type of plot it is just whether it is claimed or not.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <param name="width"></param>
-        /// <param name="depth"></param>
-        /// <returns></returns>
-        private bool claimed(int x, int y, int width, int depth)
-        {
-            return (cityMap.isPlotClaimed(makePlot(x, y, width, depth)));
-        }
-        /// <summary>
-        /// Finds which building plot is occupying the point of land specified.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <returns></returns>
-        private BuildingPlot findPlot(int x, int y)
-        {
-            foreach (BuildingPlot p in cityMap.cityPlots)
-            {
-                if (x >= p.xpos && y >= p.ypos)
-                {
-                    return (p);
-                }
-            }
-            return null;
-        }
-        /// <summary>
-        /// Construct a new plot from given parameters.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="z"></param>
-        /// <param name="w"></param>
-        /// <param name="h"></param>
-        /// <returns></returns>
-        private BuildingPlot makePlot(int x, int z, int w, int h)
-        {
-            BuildingPlot plot = new BuildingPlot();
-            plot.xpos = x; plot.ypos = z;
-            plot.width = (byte)w; plot.depth = (byte)h;
-
-            return plot;
-        }
-        /// <summary>
         /// 
         /// </summary>
         /// <param name="filePath"></param>
@@ -334,16 +283,16 @@ namespace Aurora.Modules.City
             lanes -= sidewalk;
             sidewalk /= 2;
             lanes /= 2;
-            claim(x1, y1, width, depth, PlotClaimType.CLAIM_NONE);
+            cityMap.ClaimPlot(cityMap.MakePlot(x1, y1, width, depth, PlotClaimType.CLAIM_NONE));
             if (width > depth)
             {
-                claim(x1, y1 + sidewalk, width, lanes, PlotClaimType.CLAIM_TRANSPORT);
-                claim(x1, y1 + sidewalk + lanes + divider, width, lanes, PlotClaimType.CLAIM_TRANSPORT);
+                cityMap.ClaimPlot(cityMap.MakePlot(x1, y1 + sidewalk, width, lanes, PlotClaimType.CLAIM_TRANSPORT));
+                cityMap.ClaimPlot(cityMap.MakePlot(x1, y1 + sidewalk + lanes + divider, width, lanes, PlotClaimType.CLAIM_TRANSPORT));
             }
             else
             {
-                claim(x1 + sidewalk, y1, lanes, depth, PlotClaimType.CLAIM_TRANSPORT);
-                claim(x1 + sidewalk + lanes + divider, y1, lanes, depth, PlotClaimType.CLAIM_TRANSPORT);
+                cityMap.ClaimPlot(cityMap.MakePlot(x1 + sidewalk, y1, lanes, depth, PlotClaimType.CLAIM_TRANSPORT));
+                cityMap.ClaimPlot(cityMap.MakePlot(x1 + sidewalk + lanes + divider, y1, lanes, depth, PlotClaimType.CLAIM_TRANSPORT));
             }
         }
         /// <summary>
@@ -375,16 +324,92 @@ namespace Aurora.Modules.City
         /// <returns></returns>
         public bool createRegion(int x, int y)
         {
-            RegionInfo region = new RegionInfo();
+            /*
+             *  Construct a region for the given position in the city.
+             */
 
-            region.RegionName = "Region"+x+y;
-            region.RegionID = UUID.Random();
-            
+            // Validate the supplied parameters and internal ones.
+            // If a region already exists at the specified position just exit.
+            if (!m_fEnabled || !m_fInitialised || cityConfig==null)
+            {
+                m_log.Info("[CITY BUILDER]: FAIL! not enabled, initialised or no configuration");
+                return (false);
+            }
+
+            if (cityMap.Equals(null) || cityMap.cityRegions.Equals(null))
+                return (false);
+
+            //  Construct the user info for the region/estate.
+            //  Decode the specified default user to be used for the owner of the estate and thus the city.
+            string defaultUserAccountName = cityConfig.GetString("DefaultCityOwner", "Cobra ElDiablo");
+
+            //  Find the users account or construct one.
+            /*
+            if (!m_UserAccountService.Equals(null))
+                m_DefaultUserAccount = m_UserAccountService.GetUserAccount(UUID.Zero, defaultUserAccountName);
+            else
+                m_DefaultUserAccount = null;
+
+            if (m_DefaultUserAccount.Equals(null))
+            {
+                //  Account doesn't exist, create it.
+                m_log.InfoFormat("[CITY BUILDER]: IGNORE Constructing hardcoded account for user {0}", defaultUserAccountName);
+//                m_DefaultUserAccount = m_UserAccountService.CreateUser(defaultUserAccountName, Util.Md5Hash("Chr1$Br00klyn"), "cobra@arcturus.bounceme.net");
+            }
+            else
+                m_log.Info("[CITY BUILDER]: Specified user account found.");
+            */
+
+            //  Construct the estate/parcel info for this region.
+            string defaultEstateName = cityConfig.GetString("DefaultCityEstate", "Liquid Silicon Developments");
+
+            //  Construct land and estate data and update to reflect the found user or the newly created one.
+            m_DefaultEstate = new EstateSettings();
+            cityLandData = new LandData();
+
+            cityLandData.OwnerID = UUID.Zero;// m_DefaultUserAccount.PrincipalID;
+            cityLandData.Name = "Liquid Silicon Developments";
+            cityLandData.GlobalID = UUID.Random();
+            cityLandData.GroupID = UUID.Zero;
+
+            m_DefaultEstate.EstateOwner = UUID.Zero;// m_DefaultUserAccount.PrincipalID;
+            m_DefaultEstate.EstateName = "Liquid Silicon Developments";
+
+            //  Construct the region.
+            RegionInfo regionInfo = new RegionInfo();
+            IScene scenePtr = cityMap.cityRegions[x, y];
+
+//            regionInfo.CreateIConfig(configSource);
+            regionInfo.EstateSettings = m_DefaultEstate;
+            regionInfo.RegionID = UUID.Random();
+            regionInfo.RegionSizeX = cityConfig.GetInt("DefaultRegionSize", 256);
+            regionInfo.RegionSizeY = regionInfo.RegionSizeX;
+            regionInfo.RegionType = "Mainland";
+            regionInfo.ObjectCapacity = 100000;
+            regionInfo.Startup = StartupType.Normal;
+            regionInfo.ScopeID = m_DefaultEstate.EstateOwner;
+            regionInfo.RegionName = "Region" + x + y;
+            cityLandData.RegionID = regionInfo.RegionID;
             IPAddress address = IPAddress.Parse("0.0.0.0");
-            region.InternalEndPoint = new IPEndPoint(address, startPort++);
+            regionInfo.InternalEndPoint = new IPEndPoint(address, startPort++);
+            regionInfo.ExternalHostName = Aurora.Framework.Utilities.GetExternalIp();
+            regionInfo.FindExternalAutomatically = true;
 
-            region.ExternalHostName = Aurora.Framework.Utilities.GetExternalIp();
-            region.FindExternalAutomatically = true;
+            //  Now ask the scene manager to construct the region.
+            if (!sceneManager.Equals(null))
+            {
+                IScene scene = (IScene)cityMap.cityRegions[x, y];
+                m_log.Info("[CITY BUILDER]: Scene manager obtained constructing region");
+                sceneManager.CreateRegion(regionInfo, out scene);
+            }
+            else
+            {
+                m_log.Info("[CITY BUILDER]: NO SCENE MANAGER");
+                return (false);
+            }
+
+            /*
+
 
             region.RegionType = "mainland";
             region.ObjectCapacity = 80000;//int.Parse(ObjectCount.Text);
@@ -410,7 +435,7 @@ namespace Aurora.Modules.City
 
             AgentCircuitManager circuitManager = new AgentCircuitManager();
             IPAddress listenIP = region.InternalEndPoint.Address;
-//            Scene scene = new Scene();
+            Scene scene = new Scene();
 
             if (!IPAddress.TryParse(region.InternalEndPoint.Address.ToString(), out listenIP))
                 listenIP = IPAddress.Parse("0.0.0.0");
@@ -429,75 +454,77 @@ namespace Aurora.Modules.City
             IScene iScene;
             sceneManager.CreateRegion(region, out iScene);
             cityMap.cityRegions[x, y] = (Scene)iScene;
-//            bool fine = false;
-//            bool valid = false;
-//            int tries = 10;
+            bool fine = false;
+            bool valid = false;
+            int tries = 10;
 
-//            while (!fine)
-//            {
-//                if (tries <= 0)
-//                    break;
+            while (!fine)
+            {
+                if (tries <= 0)
+                    break;
                 try
                 {
-//                    clientServer.Initialise(listenIP, ref port, 0, region.m_allow_alternate_ports,
-//                        configSource, circuitManager);
+                    clientServer.Initialise(listenIP, ref port, 0, region.m_allow_alternate_ports,
+                        configSource, circuitManager);
                     clientServer.AddScene(cityMap.cityRegions[x, y]);
                     m_log.InfoFormat("[CITY BUILDER]: Region {0} created @ {1},{2}", region.RegionName, x, y);
-//                    fine = true;
-//                    valid = true;
+                    fine = true;
+                    valid = true;
                 }
                 catch
                 {
                     m_log.Info("[CITY BUILDER]: Unable to create region!");
                     return (false);
-//                  fine = false;
-//                    port++;
-//                    tries-=2;
+                  fine = false;
+                    port++;
+                    tries-=2;
                 }
-//            }
+            }
 
-//            if (fine && valid)
-//            {
-//               m_log.Info("[CITY BUILDER]: Region created.");
-//            }
-//            else
-//            {
-//                m_log.Info("[CITY BUILDER]: Failed.");
-//                return (false);
-//            }
+            if (fine && valid)
+            {
+               m_log.Info("[CITY BUILDER]: Region created.");
+            }
+            else
+            {
+                m_log.Info("[CITY BUILDER]: Failed.");
+                return (false);
+            }
 
             region.InternalEndPoint.Port = (int)port;
 
             //  Construct a new physics thingy for the scene.
-//            scene.PhysicsScene = new OpenSim.Framework.PhysicsScene();
+            scene.PhysicsScene = new OpenSim.Framework.PhysicsScene();
             //  Obtain links to any current modules installed and tell the new scene about them.
             cityMap.cityRegions[x,y].AddModuleInterfaces(simulationBase.ApplicationRegistry.GetInterfaces());
             //  initialise the scene.
-//            scene.SceneManager.CreateRegion(region, out iScene);
+            scene.SceneManager.CreateRegion(region, out iScene);
             cityMap.cityRegions[x,y].Initialize(region, circuitManager, clientServer);
             //  Tell the client server about the new scene.
-//            clientServer.AddScene(scene);
+            clientServer.AddScene(scene);
 
             //Do this here so that we don't have issues later when startup complete messages start coming in
-//            m_localScenes.Add(scene);
+            m_localScenes.Add(scene);
 
-//            m_log.Info("[Modules]: Loading region modules");
-//            IRegionModulesController controller;
-//            if (simulationBase.ApplicationRegistry.TryRequestModuleInterface(out controller))
-//            {
-//                controller.AddRegionToModules(scene);
-//            }
-//            else
-//                m_log.Error("[Modules]: The new RegionModulesController is missing...");
+            m_log.Info("[Modules]: Loading region modules");
+            IRegionModulesController controller;
+            if (simulationBase.ApplicationRegistry.TryRequestModuleInterface(out controller))
+            {
+                controller.AddRegionToModules(scene);
+            }
+            else
+                m_log.Error("[Modules]: The new RegionModulesController is missing...");
 
             //Post init the modules now
-//            PostInitModules(scene);
+            PostInitModules(scene);
 
             //Start the heartbeats DONT START THE HEARTBEATS!
-//            scene.StartHeartbeat();
+            scene.StartHeartbeat();
             //Tell the scene that the startup is complete 
             // Note: this event is added in the scene constructor
             cityMap.cityRegions[x,y].FinishedStartup("Startup", new List<string>());
+
+            */
 
             //  Job done, exit with OK.
             return (true);
@@ -526,6 +553,7 @@ namespace Aurora.Modules.City
                 m_log.Info("[CITY BUILDER]: Disabled, aborting auto generation.");
                 return (false);
             }
+            sceneManager = simulationBase.ApplicationRegistry.RequestModuleInterface<SceneManager>();
 
             m_log.Info("[CITY BUILDER]: Auto generating the city.");
 
@@ -719,30 +747,72 @@ namespace Aurora.Modules.City
             // the command console commands and alters some internal properties, indicating that
             // the module is loaded, enabled and ready for use.
             m_log.Info("[CITY BUILDER]: Version 0.0.0.10 ");
+
+            //  Store the supplied simulation base to for future use.
             simulationBase = openSim;
-            //  The following are not used.
-//            sceneManager = simulationBase.ApplicationRegistry.RequestModuleInterface<SceneManager>();
-//            sceneGraph = simulationBase.ApplicationRegistry.RequestModuleInterface<SceneGraph>();
-//            m_connector = simulationBase.ApplicationRegistry.RequestModuleInterface<IRegionInfoConnector>();
+            //  Store the configuration source (I presume all contents of all ini files).
             configSource = simulationBase.ConfigSource;
+            //  Store the configuration section specifically used by City Builder.
             cityConfig = configSource.Configs["CityBuilder"];
+
+            //  Obtain the default user account service, do the same for the estate/parcel too.
+            m_UserAccountService = simulationBase.ApplicationRegistry.RequestModuleInterface<IUserAccountService>();
+            //  If we have a configuration source for City Builder then set the specified internal properties else default them.
             if (cityConfig != null)
             {
-                cityName = cityConfig.GetString("Name", "01");
-                cityOwner = cityConfig.GetString("CityOwner", "Cobra ElDiablo");
-                citySeed = randomValue(65535);
+                //  Configuration file is present or it is included within one of the other configuration
+                // file that control aurora obtain the specified values or use hardcoded defaults.
                 m_log.Info("[CITY BUILDER]: Configuration found, stored.");
+
+                //  Construct Land data to be used for the entire city and any occupied regions.
+                m_DefaultUserAccount = null;
+                // Construct the estate settings for the city.
+                m_DefaultEstate = null;
+
+                startPort = cityConfig.GetInt("DefaultStartPort", startPort);
+
+                m_fEnabled = cityConfig.GetBoolean("Enabled", m_fEnabled);
+
+                m_fInitialised = false;
+                citySeed = CityModule.randomValue(257);
+                cityName = cityConfig.GetString("DefaultCityName", "CityVille");
+                cityOwner = cityConfig.GetString("DefaultCityOwner", "Cobra ElDiablo");
+                CityEstate = cityConfig.GetString("DefaultCityEstate", "Liquid Silicon Developments");
+                sceneManager = null;
+                cityDensities = new List<float>();
+                m_DefaultStartLocation = new Vector2(9500, 9500);
             }
             else
             {
                 m_log.Info("[CITY BUILDER]: No configuration data found.");
+
+                m_DefaultUserAccount = null;
+                m_DefaultEstate = null;
+                
+                m_fEnabled = false;
+                m_fInitialised = false;
+                citySeed = CityModule.randomValue(257);
+                cityName = string.Empty;
+                cityOwner = string.Empty;
+                CityEstate = string.Empty;
+                //  Configuration for the plugin.
+                //  Configuration source from Aurora.
+                cityConfig = new ConfigBase("CityBuilder",configSource);
+                cityDensities = new List<float>();
+                cityDensities.Add(0.85f);
+                cityDensities.Add(0.75f);
+                cityDensities.Add(0.65f);
+                cityDensities.Add(0.45f);
+                m_DefaultStartLocation = new Vector2(9500, 9500);
                 // automatically disable the module if a configuration is not found. You can
                 // manually enable the module and then set its internal properties before using
                 // it via the server command console prompt.
                 m_fEnabled = false;
             }
 
-            //  Install the module, does not alter the enabled flag!
+            //  Install the module, does not alter the enabled flag! This allows for the plugin
+            // to install some commands for the main servers console but prevents any use of 
+            // the plugin until the internal properties are set correctly.
             InstallModule();
         }
         /// <summary>
@@ -826,6 +896,19 @@ namespace Aurora.Modules.City
 
             m_log.InfoFormat("Attempting to set parameter {0} to {1}", param, value);
 
+            /*
+             *      Settable parameters for the City Builder plugin.
+             *      
+             *  Property Name       Type        Default
+             *  
+             *      Name            string      DEBUG: "Cobra ElDiablo", RELEASE: as per config file.
+             *      Owner
+             *      regioncount
+             *      regionsize
+             *      estate
+             *      densities
+             *      
+             */
             if (param == "Name")
             {
                 m_log.InfoFormat("City name changed from {0}, to {1}", cityName, value);

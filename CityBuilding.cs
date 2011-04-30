@@ -24,7 +24,7 @@ using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
-namespace Aurora.Modules.City
+namespace Aurora.Modules.CityBuilder
 {
     /*
      *  Building usage this is a list of buildings and landmarks used by ArcGIS.
