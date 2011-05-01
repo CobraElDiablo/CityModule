@@ -457,6 +457,10 @@ namespace Aurora.Modules.CityBuilder
 
         #region Constructors
 
+        public CityBuilding():base(null)
+        {
+        }
+
         /// <summary>
         /// Construct the building class instance from the given properties.
         /// </summary>

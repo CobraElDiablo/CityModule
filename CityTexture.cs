@@ -31,7 +31,7 @@ using OpenSim.Region.Framework.Scenes;
 //using OpenSim.CoreApplicationPlugins;
 using OpenSim.Framework;
 
-namespace Aurora.Modules.City
+namespace Aurora.Modules.CityBuilder
 {
     /// <summary>
     /// This class deals with the textures used for buildings, roads etc.

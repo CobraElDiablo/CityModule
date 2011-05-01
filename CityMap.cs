@@ -83,6 +83,42 @@ namespace Aurora.Modules.CityBuilder
         {
             get { return cityBuildings.Count(); }
         }
+        public BuildingPlot GetPlot(int idx)
+        {
+            if (idx < 0 || idx > cityPlots.Count)
+            {
+                return (null);
+            }
+
+            return (cityPlots[idx]);
+        }
+        public CityBuilding GetBuilding(int idx)
+        {
+            if (idx < 0 || idx > cityBuildings.Count)
+            {
+                return (null);
+            }
+            return (cityBuildings[idx]);
+        }
+        public CityBuilding GetBuilding(UUID ident)
+        {
+            if (ident == UUID.Zero)
+            {
+                return (null);
+            }
+            foreach (CityBuilding building in cityBuildings)
+            {
+                if (building.UUID.Equals(ident))
+                {
+                    return (building);
+                }
+            }
+            return (null);
+        }
+        public CityBuilding GetBuilding(string buildingName)
+        {
+            return (null);
+        }
 
         //  PLOT CONTROL
 

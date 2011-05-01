@@ -539,6 +539,7 @@ namespace Aurora.Modules.CityBuilder
         /// <returns>true / false indicator of success or failure.</returns>
         private bool doGenerate(int seed_value)
         {
+            int rx, ry;
             //  Based on the initial seed value populate the regions that this shared module 
             // is connected to, this means first get a list of the region, determine which
             // region is in the center of all the regions and set this as the hotzone, or
@@ -553,7 +554,6 @@ namespace Aurora.Modules.CityBuilder
                 m_log.Info("[CITY BUILDER]: Disabled, aborting auto generation.");
                 return (false);
             }
-            sceneManager = simulationBase.ApplicationRegistry.RequestModuleInterface<SceneManager>();
 
             m_log.Info("[CITY BUILDER]: Auto generating the city.");
 
@@ -561,18 +561,17 @@ namespace Aurora.Modules.CityBuilder
             // the base seed value as this is part of the 'city generate' command, now what
             // about a name, position, size, densities etc. Some of this can be generated
             // based on the seed value, but then, it would need to be confirmed by the user
-            // or allow them to change it.
+            // or allow them to change it. TODO move all requested data into the configuration file.
 
             //  Decide where the city is to be placed within the server instance.
             int r = CityModule.randomValue(16);// (int)(27 / 2.45f + (((4 / 5) * 4) / 3));
 
             string regionCount = MainConsole.Instance.CmdPrompt("Region Count ", r.ToString());
             r = Convert.ToInt32(regionCount);
-            m_log.InfoFormat("[CITY BUILDER]: Region size 256, x:{0} * y:{1} {2}, regions.", r, r, r * r);
-            m_log.InfoFormat("[CITY BUILDER]: City area {0} m^2", (256 * r) * (256 * r));
+            m_log.InfoFormat("[CITY BUILDER]: City area {0} region ^2", r * r);
 
-            cityName = MainConsole.Instance.CmdPrompt("City Name ", "01");
-            cityOwner = MainConsole.Instance.CmdPrompt("City Owner ", "Cobra ElDiablo");
+            cityName = MainConsole.Instance.CmdPrompt("City Name ", cityName);
+            cityOwner = MainConsole.Instance.CmdPrompt("City Owner ", cityOwner);
 
             //  Obtain the scene manager, scene graph and region info connector from the server.
             if (simulationBase.Equals(null))
@@ -580,20 +579,12 @@ namespace Aurora.Modules.CityBuilder
                 m_log.Info("[CITYBUILDER]: Unable to continue, no simulation base!");
                 return (false);
             }
+            //  Obtain the scene manager.
             sceneManager = simulationBase.ApplicationRegistry.RequestModuleInterface<SceneManager>();
-            /*
-             * Change following to:
-             *      m_connector = Aurora.DataManager.DataManager.RequestPlugin<IRegionInfoConnector>();
-             *
-            sceneGraph = simulationBase.ApplicationRegistry.RequestModuleInterface<SceneGraph>();
-            m_connector = simulationBase.ApplicationRegistry.RequestModuleInterface<IRegionInfoConnector>();
+            //  Obtain the user account interface for the server.
+            //m_UserAccountService = simulationBase.ApplicationRegistry.RegisterModuleInterface<IUserAccountService>();
+            //  Obtain the estate/parcel interfaces.
 
-            if (sceneManager.Equals(null))
-            {
-                m_log.Error("NO SCENE MANAGER FOUND.");
-                return (false);
-            }
-            */
             //  Construct the data instance for a city map to hold the total regions in the simulation.
             cityMap = new CityMap();
             citySeed = seed_value;
@@ -601,11 +592,13 @@ namespace Aurora.Modules.CityBuilder
             cityMap.cityPlots = new List<BuildingPlot>();
             cityMap.cityBuildings = new List<CityBuilding>();
 
-            m_log.InfoFormat("[CITY BUILDER]: r {0}", r);
+            //  Make sure that the user and estate information specified in the configuration file
+            // have been loaded and the information has either been found or has been created.
 
-            for (int rx = 0; rx < r; rx++)
+            //  Construct the regions for the city.
+            for (rx = 0; rx < r; rx++)
             {
-                for (int ry = 0; ry < r; ry++)
+                for (ry = 0; ry < r; ry++)
                 {
                     if (!createRegion(rx, ry))
                     {
@@ -619,73 +612,22 @@ namespace Aurora.Modules.CityBuilder
                 }
             }
 
-            /*
-             *  According to the region plugin loader the following is the correct way of constructing
-             *  regions, although in this case it is causing an exception to be thrown.
-             *  
-             *      Does a region being created have to have a region file for it or can the region information
-             *      be generated procedurally?
-             *      
-             *      How can I create, delete and manipulate primitives without relying on an inworld script
-             *      with an XMLRPC/HTTP, etc communications method as the maximum data size allowed is too small.
-             *
-            uint port = 9500;
-//            CityMap map = new CityMap();
-//            map.cityRegions = new Scene[10, 10];
+            //  Either generate the terrain or loading from an existing file, DEM for example.
+            m_log.Info("[CITY BUILDER]: [TERRAIN]");
 
-            sceneManager = simulationBase.ApplicationRegistry.RequestModuleInterface<SceneManager>();
-            //  Here we construct a 10 x 10 region space for the city.
-            for (int rx = 0; rx < r; rx++)
+            //  For each region, just fill the terrain to be 21. This is just above the default
+            // water level for Aurora.
+            for (rx = 0; rx < r; rx++)
             {
-                for ( int ry = 0; ry < r; ry++)
+                for (ry = 0; ry < r; ry++)
                 {
-                    RegionInfo regionInfo = new RegionInfo();
-
-                    regionInfo.RegionLocX = (100 + rx);
-                    regionInfo.RegionLocY = (100 + ry);
-                    regionInfo.RegionID = new UUID();
-                    regionInfo.RegionName = Convert.ToString("TestRegion" + rx + ry);
-                    regionInfo.RegionSizeX = 1024;
-                    regionInfo.RegionSizeY = 1024;
-                    regionInfo.HttpPort = port;
-                    regionInfo.RegionType = "Mainland";
-                    regionInfo.Password = UUID.Parse("9ac04bbd-cecb-4548-ae4d-ebe5c013985a");
-                    regionInfo.m_allow_alternate_ports = false;
-                    port++;
-
-//                    IConfigSource configSource = new Nini.Config.IConfigSource();
-//                    regionInfo.CreateIConfig(configSource);
-//                    if (configSource != null)
-//                    {
-//                        configSource.AutoSave = true;
-//                        configSource.Save();
-//                    }
-
-//                    map.age = 0;
-//                    map.multiRegion = true;
-
-                    try
-                    {
-                        Scene scene;// = map.cityRegions[rx, ry];
-                        if (!sceneManager.Equals(null))
-                        {
-                            sceneManager.CreateRegion(regionInfo, out scene);
-                        }
-//                        cityMap.Add(map);
-                        m_log.InfoFormat("[CITY BUILDER]: Region {0} created.", regionInfo.RegionName);
-                        cityMap.cityRegions[rx, ry] = (Scene)scene;
-                    }
-                    catch ( System.Exception E )
-                    {
-                        m_log.Info("[CITY BUILDER]: Exception caught when trying to create a region.");
-                        m_log.InfoFormat("[CITY BUILDER]: {0}", E.Message);
-                        m_log.InfoFormat("[CITY BUILDER]: {0}", E.ToString());
-                        return( false );
-                    }
+                    Scene region = cityMap.cityRegions[rx, ry];
+                    ITerrainChannel tChannel = null;
+                    tChannel = new TerrainChannel(true, region);
                 }
             }
-            */
-            m_log.Info("[CITY BUILDER]: [TERRAIN]");
+
+
             m_log.Info("[CITY BUILDER]: [CENTERS]");
             m_log.Info("[CITY BUILDER]: [DENSITY]");
             m_log.Info("[CITY BUILDER]: [FREEWAYS]");
