@@ -339,47 +339,29 @@ namespace Aurora.Modules.CityBuilder
             if (cityMap.Equals(null) || cityMap.cityRegions.Equals(null))
                 return (false);
 
-            //  Construct the user info for the region/estate.
-            //  Decode the specified default user to be used for the owner of the estate and thus the city.
-            string defaultUserAccountName = cityConfig.GetString("DefaultCityOwner", "Cobra ElDiablo");
-
-            //  Find the users account or construct one.
-            /*
-            if (!m_UserAccountService.Equals(null))
-                m_DefaultUserAccount = m_UserAccountService.GetUserAccount(UUID.Zero, defaultUserAccountName);
-            else
-                m_DefaultUserAccount = null;
-
-            if (m_DefaultUserAccount.Equals(null))
-            {
-                //  Account doesn't exist, create it.
-                m_log.InfoFormat("[CITY BUILDER]: IGNORE Constructing hardcoded account for user {0}", defaultUserAccountName);
-//                m_DefaultUserAccount = m_UserAccountService.CreateUser(defaultUserAccountName, Util.Md5Hash("Chr1$Br00klyn"), "cobra@arcturus.bounceme.net");
-            }
-            else
-                m_log.Info("[CITY BUILDER]: Specified user account found.");
-            */
-
-            //  Construct the estate/parcel info for this region.
-            string defaultEstateName = cityConfig.GetString("DefaultCityEstate", "Liquid Silicon Developments");
-
             //  Construct land and estate data and update to reflect the found user or the newly created one.
-//            m_DefaultEstate = new EstateSettings();
             cityLandData = new LandData();
-
-            cityLandData.OwnerID = UUID.Zero;// m_DefaultUserAccount.PrincipalID;
-            cityLandData.Name = "Liquid Silicon Developments";
-            cityLandData.GlobalID = UUID.Random();
-            cityLandData.GroupID = UUID.Zero;
-
-//            m_DefaultEstate.EstateOwner = UUID.Zero;// m_DefaultUserAccount.PrincipalID;
-//            m_DefaultEstate.EstateName = "Liquid Silicon Developments";
-
-            //  Construct the region.
             RegionInfo regionInfo = new RegionInfo();
             IScene scenePtr = cityMap.cityRegions[x, y];
 
-//            regionInfo.CreateIConfig(configSource);
+            if (m_DefaultEstate != null)
+            {
+                m_DefaultEstate.EstateOwner = m_DefaultUserAccount.PrincipalID;
+                m_DefaultEstate.EstateName = CityEstate;
+                cityLandData.OwnerID = m_DefaultUserAccount.PrincipalID;
+                cityLandData.Name = CityEstate;
+                cityLandData.GlobalID = UUID.Random();
+                cityLandData.GroupID = UUID.Zero;
+            }
+            else
+            {
+                cityLandData.OwnerID = UUID.Zero;
+                cityLandData.GlobalID = UUID.Random();
+                cityLandData.GroupID = UUID.Zero;
+            }
+
+            //  Construct the region.
+
             regionInfo.EstateSettings = new EstateSettings();// m_DefaultEstate;
             regionInfo.RegionID = UUID.Random();
             regionInfo.RegionSizeX = cityConfig.GetInt("DefaultRegionSize", 256);
@@ -389,8 +371,8 @@ namespace Aurora.Modules.CityBuilder
             regionInfo.Startup = StartupType.Normal;
             regionInfo.ScopeID = UUID.Zero;// m_DefaultEstate.EstateOwner;
             regionInfo.RegionName = "Region" + x + y;
-            regionInfo.RegionLocX = x;  // Need to set these to be the default location + x!
-            regionInfo.RegionLocY = y;  // as above but + y!
+            regionInfo.RegionLocX = (int)(m_DefaultStartLocation.X + x);
+            regionInfo.RegionLocY = (int)(m_DefaultStartLocation.Y + y);
             cityLandData.RegionID = regionInfo.RegionID;
             IPAddress address = IPAddress.Parse("0.0.0.0");
             regionInfo.InternalEndPoint = new IPEndPoint(address, startPort++);
@@ -403,147 +385,26 @@ namespace Aurora.Modules.CityBuilder
                 IScene scene = (IScene)cityMap.cityRegions[x, y];
                 m_log.Info("[CITY BUILDER]: Scene manager obtained constructing region");
                 sceneManager.CreateRegion(regionInfo, out scene);
-
                 //  Store the created user account and estate settings if they haven't already been stored.
-                if (m_DefaultUserAccount==null)
-                {
-                    m_DefaultUserAccount = scene.UserAccountService.GetUserAccount(scene.RegionInfo.ScopeID, "Cobra ElDiablo");
-                }
-
-                if (m_DefaultEstate==null)
-                {
-                    IEstateConnector EstateConnector = Aurora.DataManager.DataManager.RequestPlugin<IEstateConnector>();
-
-                    List<EstateSettings> estates = EstateConnector.GetEstates(m_DefaultUserAccount.PrincipalID);
-                    if (estates.Count > 0)
-                    {
-                        m_DefaultEstate = estates[0];
-                    }
-                }
+//                if (m_DefaultUserAccount==null)
+//                {
+//                    m_DefaultUserAccount = scene.UserAccountService.GetUserAccount(scene.RegionInfo.ScopeID, "Cobra ElDiablo");
+//                }
+//                if (m_DefaultEstate==null)
+//                {
+//                    IEstateConnector EstateConnector = Aurora.DataManager.DataManager.RequestPlugin<IEstateConnector>();
+//                    List<EstateSettings> estates = EstateConnector.GetEstates(m_DefaultUserAccount.PrincipalID);
+//                    if (estates.Count > 0)
+//                    {
+//                        m_DefaultEstate = estates[0];
+//                    }
+//                }
             }
             else
             {
                 m_log.Info("[CITY BUILDER]: NO SCENE MANAGER");
                 return (false);
             }
-
-            /*
-
-
-            region.RegionType = "mainland";
-            region.ObjectCapacity = 80000;//int.Parse(ObjectCount.Text);
-
-            region.RegionSettings.Maturity = 0;
-            region.Disabled = false;//DisabledEdit.Checked;
-            region.RegionSizeX = 256;//int.Parse(CRegionSizeX.Text);
-            region.RegionSizeY = 256;//int.Parse(CRegionSizeY.Text);
-            if ((region.RegionSizeX % Constants.MinRegionSize) != 0 ||
-                (region.RegionSizeY % Constants.MinRegionSize) != 0)
-            {
-                return(false);
-            }
-            region.RegionLocX = 100 + x * region.RegionSizeX;// * Constants.RegionSize);
-            region.RegionLocY = 100 + y * region.RegionSizeY;// * Constants.RegionSize);
-            region.NumberStartup = 0 + (x * y) + y;
-            region.Startup = StartupType.Normal;
-
-            m_log.Info("[CITY BUILDER]: Creating Region: (" + region.RegionName + ")");
-
-            // set the initial ports
-            region.HttpPort = MainServer.Instance.Port;
-
-            AgentCircuitManager circuitManager = new AgentCircuitManager();
-            IPAddress listenIP = region.InternalEndPoint.Address;
-            Scene scene = new Scene();
-
-            if (!IPAddress.TryParse(region.InternalEndPoint.Address.ToString(), out listenIP))
-                listenIP = IPAddress.Parse("0.0.0.0");
-
-            uint port = (uint)region.InternalEndPoint.Port;
-
-            string ClientstackDll = configSource.Configs["Startup"].GetString("ClientStackPlugin", "OpenSim.Region.ClientStack.LindenUDP.dll");
-
-            if (ClientstackDll.Length <= 0)
-            {
-                m_log.Info("[CITY BUILDER]: Unable to find ClientStackPlugin from configs");
-                return (false);
-            }
-
-            IClientNetworkServer clientServer = AuroraModuleLoader.LoadPlugin<IClientNetworkServer>(ClientstackDll);
-            IScene iScene;
-            sceneManager.CreateRegion(region, out iScene);
-            cityMap.cityRegions[x, y] = (Scene)iScene;
-            bool fine = false;
-            bool valid = false;
-            int tries = 10;
-
-            while (!fine)
-            {
-                if (tries <= 0)
-                    break;
-                try
-                {
-                    clientServer.Initialise(listenIP, ref port, 0, region.m_allow_alternate_ports,
-                        configSource, circuitManager);
-                    clientServer.AddScene(cityMap.cityRegions[x, y]);
-                    m_log.InfoFormat("[CITY BUILDER]: Region {0} created @ {1},{2}", region.RegionName, x, y);
-                    fine = true;
-                    valid = true;
-                }
-                catch
-                {
-                    m_log.Info("[CITY BUILDER]: Unable to create region!");
-                    return (false);
-                  fine = false;
-                    port++;
-                    tries-=2;
-                }
-            }
-
-            if (fine && valid)
-            {
-               m_log.Info("[CITY BUILDER]: Region created.");
-            }
-            else
-            {
-                m_log.Info("[CITY BUILDER]: Failed.");
-                return (false);
-            }
-
-            region.InternalEndPoint.Port = (int)port;
-
-            //  Construct a new physics thingy for the scene.
-            scene.PhysicsScene = new OpenSim.Framework.PhysicsScene();
-            //  Obtain links to any current modules installed and tell the new scene about them.
-            cityMap.cityRegions[x,y].AddModuleInterfaces(simulationBase.ApplicationRegistry.GetInterfaces());
-            //  initialise the scene.
-            scene.SceneManager.CreateRegion(region, out iScene);
-            cityMap.cityRegions[x,y].Initialize(region, circuitManager, clientServer);
-            //  Tell the client server about the new scene.
-            clientServer.AddScene(scene);
-
-            //Do this here so that we don't have issues later when startup complete messages start coming in
-            m_localScenes.Add(scene);
-
-            m_log.Info("[Modules]: Loading region modules");
-            IRegionModulesController controller;
-            if (simulationBase.ApplicationRegistry.TryRequestModuleInterface(out controller))
-            {
-                controller.AddRegionToModules(scene);
-            }
-            else
-                m_log.Error("[Modules]: The new RegionModulesController is missing...");
-
-            //Post init the modules now
-            PostInitModules(scene);
-
-            //Start the heartbeats DONT START THE HEARTBEATS!
-            scene.StartHeartbeat();
-            //Tell the scene that the startup is complete 
-            // Note: this event is added in the scene constructor
-            cityMap.cityRegions[x,y].FinishedStartup("Startup", new List<string>());
-
-            */
 
             //  Job done, exit with OK.
             return (true);
@@ -581,6 +442,10 @@ namespace Aurora.Modules.CityBuilder
             // about a name, position, size, densities etc. Some of this can be generated
             // based on the seed value, but then, it would need to be confirmed by the user
             // or allow them to change it. TODO move all requested data into the configuration file.
+            if (m_UserAccountService == null)
+            {
+                m_UserAccountService = simulationBase.ApplicationRegistry.RequestModuleInterface<IUserAccountService>();
+            }
 
             //  Decide where the city is to be placed within the server instance.
             int r = CityModule.randomValue(16);// (int)(27 / 2.45f + (((4 / 5) * 4) / 3));
@@ -592,16 +457,23 @@ namespace Aurora.Modules.CityBuilder
             cityName = MainConsole.Instance.CmdPrompt("City Name ", cityName);
             cityOwner = MainConsole.Instance.CmdPrompt("City Owner ", cityOwner);
 
-            //  Obtain the scene manager, scene graph and region info connector from the server.
-            if (simulationBase.Equals(null))
+            //  Construct the user if not present.
+            m_DefaultUserAccount = m_UserAccountService.GetUserAccount(UUID.Zero, cityOwner);
+            if (m_DefaultUserAccount == null)
             {
-                m_log.Info("[CITYBUILDER]: Unable to continue, no simulation base!");
-                return (false);
+                m_UserAccountService.CreateUser(cityOwner, Util.Md5Hash("Chr1$Br00klyn"), "cobra@localhost");
+                m_DefaultUserAccount = m_UserAccountService.GetUserAccount(UUID.Zero, cityOwner);
             }
+
+            //  Construct the Estate/parcel data for this user.
+            m_DefaultEstate = new EstateSettings();
+
+            m_DefaultEstate.EstateOwner = m_DefaultUserAccount.PrincipalID;
+            m_DefaultEstate.EstateName = CityEstate;
+
             //  Obtain the scene manager.
             sceneManager = simulationBase.ApplicationRegistry.RequestModuleInterface<SceneManager>();
-            //  Obtain the user account interface for the server.
-            //m_UserAccountService = simulationBase.ApplicationRegistry.RegisterModuleInterface<IUserAccountService>();
+
             //  Obtain the estate/parcel interfaces.
 
             //  Construct the data instance for a city map to hold the total regions in the simulation.
@@ -766,6 +638,7 @@ namespace Aurora.Modules.CityBuilder
 
             //  Obtain the default user account service, do the same for the estate/parcel too.
             m_UserAccountService = simulationBase.ApplicationRegistry.RequestModuleInterface<IUserAccountService>();
+
             //  If we have a configuration source for City Builder then set the specified internal properties else default them.
             if (cityConfig != null)
             {
