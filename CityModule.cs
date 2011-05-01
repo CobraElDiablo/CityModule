@@ -364,7 +364,7 @@ namespace Aurora.Modules.CityBuilder
             string defaultEstateName = cityConfig.GetString("DefaultCityEstate", "Liquid Silicon Developments");
 
             //  Construct land and estate data and update to reflect the found user or the newly created one.
-            m_DefaultEstate = new EstateSettings();
+//            m_DefaultEstate = new EstateSettings();
             cityLandData = new LandData();
 
             cityLandData.OwnerID = UUID.Zero;// m_DefaultUserAccount.PrincipalID;
@@ -372,23 +372,25 @@ namespace Aurora.Modules.CityBuilder
             cityLandData.GlobalID = UUID.Random();
             cityLandData.GroupID = UUID.Zero;
 
-            m_DefaultEstate.EstateOwner = UUID.Zero;// m_DefaultUserAccount.PrincipalID;
-            m_DefaultEstate.EstateName = "Liquid Silicon Developments";
+//            m_DefaultEstate.EstateOwner = UUID.Zero;// m_DefaultUserAccount.PrincipalID;
+//            m_DefaultEstate.EstateName = "Liquid Silicon Developments";
 
             //  Construct the region.
             RegionInfo regionInfo = new RegionInfo();
             IScene scenePtr = cityMap.cityRegions[x, y];
 
 //            regionInfo.CreateIConfig(configSource);
-            regionInfo.EstateSettings = m_DefaultEstate;
+            regionInfo.EstateSettings = new EstateSettings();// m_DefaultEstate;
             regionInfo.RegionID = UUID.Random();
             regionInfo.RegionSizeX = cityConfig.GetInt("DefaultRegionSize", 256);
             regionInfo.RegionSizeY = regionInfo.RegionSizeX;
             regionInfo.RegionType = "Mainland";
             regionInfo.ObjectCapacity = 100000;
             regionInfo.Startup = StartupType.Normal;
-            regionInfo.ScopeID = m_DefaultEstate.EstateOwner;
+            regionInfo.ScopeID = UUID.Zero;// m_DefaultEstate.EstateOwner;
             regionInfo.RegionName = "Region" + x + y;
+            regionInfo.RegionLocX = x;  // Need to set these to be the default location + x!
+            regionInfo.RegionLocY = y;  // as above but + y!
             cityLandData.RegionID = regionInfo.RegionID;
             IPAddress address = IPAddress.Parse("0.0.0.0");
             regionInfo.InternalEndPoint = new IPEndPoint(address, startPort++);
@@ -401,6 +403,23 @@ namespace Aurora.Modules.CityBuilder
                 IScene scene = (IScene)cityMap.cityRegions[x, y];
                 m_log.Info("[CITY BUILDER]: Scene manager obtained constructing region");
                 sceneManager.CreateRegion(regionInfo, out scene);
+
+                //  Store the created user account and estate settings if they haven't already been stored.
+                if (m_DefaultUserAccount==null)
+                {
+                    m_DefaultUserAccount = scene.UserAccountService.GetUserAccount(scene.RegionInfo.ScopeID, "Cobra ElDiablo");
+                }
+
+                if (m_DefaultEstate==null)
+                {
+                    IEstateConnector EstateConnector = Aurora.DataManager.DataManager.RequestPlugin<IEstateConnector>();
+
+                    List<EstateSettings> estates = EstateConnector.GetEstates(m_DefaultUserAccount.PrincipalID);
+                    if (estates.Count > 0)
+                    {
+                        m_DefaultEstate = estates[0];
+                    }
+                }
             }
             else
             {
@@ -617,6 +636,15 @@ namespace Aurora.Modules.CityBuilder
 
             //  For each region, just fill the terrain to be 21. This is just above the default
             // water level for Aurora.
+            float[,] tHeight = new float[256, 256];
+            for (rx = 0; rx < 256; rx++)
+            {
+                for (ry = 0; ry < 256; ry++)
+                {
+                    tHeight[rx, ry] = 21.0f;
+                }
+            }
+            //  Construct the new terrain for each region and pass the height map to it.
             for (rx = 0; rx < r; rx++)
             {
                 for (ry = 0; ry < r; ry++)
@@ -624,11 +652,50 @@ namespace Aurora.Modules.CityBuilder
                     Scene region = cityMap.cityRegions[rx, ry];
                     ITerrainChannel tChannel = null;
                     tChannel = new TerrainChannel(true, region);
+                    ITerrain terrain = null;
+                    try
+                    {
+                        region.TryRequestModuleInterface<ITerrain>(out terrain);
+                        //ITerrainModule tModule = region.RequestModuleInterface<ITerrainModule>();
+                        terrain.SetHeights2D(tHeight);
+                    }
+                    catch
+                    {
+                    }
                 }
             }
-
-
+            //  From the total number of regions pick a number of regions that will be 'centers'
+            // for the entire city, record these in the centralRegions list.
             m_log.Info("[CITY BUILDER]: [CENTERS]");
+            //  ( region count * region count ) / 3
+            int aNum = CityModule.randomValue((cityMap.cityRegions.GetUpperBound(0) * cityMap.cityRegions.GetUpperBound(1))/3);
+            if (aNum == 0)
+            {
+                aNum = 1;
+            }
+            m_log.InfoFormat("[CITY BUILDER]: Total regions {0}, selecting {1} regions for centers.", (r*r), aNum );
+            int prevRegionX = 0;
+            int prevRegionY = 0;
+            while ( aNum > 0 )
+            {
+                prevRegionX = randomValue( cityMap.cityRegions.GetUpperBound(0) ) / 2;
+                prevRegionY = randomValue( cityMap.cityRegions.GetUpperBound(1) ) / 2;
+
+                m_log.InfoFormat("[CITY BUILDER]: Region {0}, located {1},{2}", aNum, prevRegionX, prevRegionY);
+
+                try
+                {
+                    Scene region = cityMap.centralRegions[(prevRegionX * cityMap.cityRegions.GetUpperBound(0)) + prevRegionY];
+                    if (region!=null)
+                    {
+                        cityMap.centralRegions.Add(region);
+                    }
+                }
+                catch
+                {
+                }
+                aNum--;
+            }
             m_log.Info("[CITY BUILDER]: [DENSITY]");
             m_log.Info("[CITY BUILDER]: [FREEWAYS]");
             m_log.Info("[CITY BUILDER]: [HIGHWAYS]");
