@@ -313,7 +313,7 @@ namespace Aurora.Modules.CityBuilder
         //  Random seed allowing for the building to be auto generated programmatically based on
         // random(ish) values that during evaluation can be used to recreate an entire city scape
         // over multiple regions giving the same city every time.
-        private int             buildingSeed = CityModule.randomValue(513);
+        private int             buildingSeed = 0;
         private int             buildingRoofTiers = 1;
         private Vector4         buildingColour = Vector4.Zero;
         private Vector4         buidlingTrimColour = Vector4.Zero;
@@ -480,7 +480,7 @@ namespace Aurora.Modules.CityBuilder
             //  Start the process of constructing a building given the parameters specified. For
             // truly random buildings change the following value (6) too another number, this is
             // used to allow for the buildings to be fairly fixed during research and development.
-            buildingSeed = CityModule.randomValue(6);
+            buildingSeed = 6; // TODO FIX ACCESS TO THE CityModule.randomValue(n) code.
             buildingType = type;
             buildingPlot = plot;
             buildingFlags = flags;
@@ -509,6 +509,7 @@ namespace Aurora.Modules.CityBuilder
                     createBlocky();
                     break;
                 case BuildingType.BUILDING_LOCALE:
+                    /*
                     switch ( CityModule.randomValue(8) )
                     {
                         case 0:
@@ -520,6 +521,7 @@ namespace Aurora.Modules.CityBuilder
                             createBlocky();
                             break;
                     }
+                    */
                     break;
                 case BuildingType.BUILDING_CIVIL:
                     createTower();

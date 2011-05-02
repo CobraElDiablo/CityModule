@@ -101,7 +101,7 @@ namespace Aurora.Modules.CityBuilder
         //  Has the plugin been initialised (installed).
         private bool m_fInitialised = false;
         //  The random value to use for city generation.
-        private int citySeed = CityModule.randomValue(257);
+        private int citySeed = 0;
         // The name of the city, TODO add some for of random name generation for not only the
         // city name but also for each region that is created.
         private string cityName = string.Empty;
@@ -234,7 +234,7 @@ namespace Aurora.Modules.CityBuilder
             m_fInitialised = true;
         }
 
-        public static int randomValue(int range)
+        public int randomValue(int range)
         {
             int r = 0;
             r = rnd.Next(range);
@@ -385,23 +385,32 @@ namespace Aurora.Modules.CityBuilder
                 m_log.Info("[CITY BUILDER]: Default estate present.");
                 m_DefaultEstate.EstateOwner = m_DefaultUserAccount.PrincipalID;
                 m_DefaultEstate.EstateName = CityEstate;
-                m_DefaultEstate.EstatePass = Util.Md5Hash(m_DefaultEstatePassword);
-                m_DefaultEstate.EstateID = (uint)CityModule.randomValue(1000);
+                // It's not picking this up properly.
+                // Why does this require the password to be hashed twice?
+                m_DefaultEstate.EstatePass = Util.Md5Hash(Util.Md5Hash(m_DefaultEstatePassword));
+                m_log.InfoFormat("[CITY BUILDER]: Debug {0}, {1}", m_DefaultEstatePassword,
+                    Util.Md5Hash(m_DefaultEstatePassword));
+                m_DefaultEstate.EstateID = (uint)this.randomValue(1000);
                 EstateConnector = Aurora.DataManager.DataManager.RequestPlugin<IEstateConnector>();
                 if (EstateConnector != null)
                 {
                     m_log.Info("[CITY BUILDER]: Estate connector present.");
-                    regionInfo.EstateSettings = EstateConnector.CreateEstate(m_DefaultEstate, regionInfo.ScopeID);
-                    if (regionInfo.EstateSettings.Equals(null))
-                    {
-                        m_log.Info("[CITY BUILDER]: Estate connector failed to create estate.");
-                    }
-                    else
-                    {
-                        m_log.Info("[CITY BUILDER]: Estate constructed.");
-                        m_DefaultEstate = regionInfo.EstateSettings;
-                        m_DefaultEstate.EstateID = (uint)CityModule.randomValue(1000);
-                    }
+                    // Determine if the estate is already present before attempting to create it.
+//                    List<EstateSettings> estates = EstateConnector.GetEstates(m_DefaultUserAccount.PrincipalID);
+//                    if (estates.Count <= 0)
+//                    {
+                        regionInfo.EstateSettings = EstateConnector.CreateEstate(m_DefaultEstate, regionInfo.RegionID);
+//                    }
+//                    else
+//                    {
+//                    if (regionInfo.EstateSettings.Equals(null))
+//                    {
+//                        m_log.Info("[CITY BUILDER]: Estate connector failed to create estate.");
+//                    }
+//                    else
+//                    {
+//                        m_log.Info("[CITY BUILDER]: Estate constructed.");
+//                    }
                 }
                 else
                 {
@@ -420,6 +429,7 @@ namespace Aurora.Modules.CityBuilder
                 cityLandData.GlobalID = UUID.Random();
                 cityLandData.GroupID = UUID.Zero;
                 regionInfo.EstateSettings = new EstateSettings();
+                regionInfo.EstateSettings.EstateID = (uint)this.randomValue(1000);
                 m_DefaultEstate = regionInfo.EstateSettings;
             }
 
@@ -443,9 +453,13 @@ namespace Aurora.Modules.CityBuilder
             //  Now ask the scene manager to construct the region.
             if (!sceneManager.Equals(null))
             {
-                IScene scene = (IScene)cityMap.cityRegions[x, y];
+                IScene scene;// = (IScene)cityMap.cityRegions[x, y];
                 m_log.Info("[CITY BUILDER]: Scene manager obtained constructing region");
                 sceneManager.CreateRegion(regionInfo, out scene);
+                if (scene != null)
+                {
+                    cityMap.cityRegions[x, y] = (Scene)scene;
+                }
             }
             else
             {
@@ -495,7 +509,7 @@ namespace Aurora.Modules.CityBuilder
             }
 
             //  Decide where the city is to be placed within the server instance.
-            int r = CityModule.randomValue(16);// (int)(27 / 2.45f + (((4 / 5) * 4) / 3));
+            int r = this.randomValue(16);// (int)(27 / 2.45f + (((4 / 5) * 4) / 3));
 
             string regionCount = MainConsole.Instance.CmdPrompt("Region Count ", r.ToString());
             r = Convert.ToInt32(regionCount);
@@ -588,7 +602,7 @@ namespace Aurora.Modules.CityBuilder
             // for the entire city, record these in the centralRegions list.
             m_log.Info("[CITY BUILDER]: [CENTERS]");
             //  ( region count * region count ) / 3
-            int aNum = CityModule.randomValue((cityMap.cityRegions.GetUpperBound(0) * cityMap.cityRegions.GetUpperBound(1))/3);
+            int aNum = this.randomValue((cityMap.cityRegions.GetUpperBound(0) * cityMap.cityRegions.GetUpperBound(1))/3);
             if (aNum == 0)
             {
                 aNum = 1;
@@ -704,7 +718,7 @@ namespace Aurora.Modules.CityBuilder
                 m_fEnabled = cityConfig.GetBoolean("Enabled", m_fEnabled);
 
                 m_fInitialised = false;
-                citySeed = CityModule.randomValue(257);
+                citySeed = this.randomValue(257);
                 cityName = cityConfig.GetString("DefaultCityName", "CityVille");
                 cityOwner = cityConfig.GetString("DefaultCityOwner", "Cobra ElDiablo");
                 m_DefaultUserName = cityOwner;
@@ -726,7 +740,7 @@ namespace Aurora.Modules.CityBuilder
                 
                 m_fEnabled = false;
                 m_fInitialised = false;
-                citySeed = CityModule.randomValue(257);
+                citySeed = this.randomValue(257);
                 cityName = string.Empty;
                 cityOwner = string.Empty;
                 CityEstate = string.Empty;
@@ -932,7 +946,7 @@ namespace Aurora.Modules.CityBuilder
 //                return;
 //            }
 
-            doGenerate(CityModule.randomValue(32767));
+            doGenerate(this.randomValue(32767));
         }
         /// <summary>
         /// Handles one of the builtin commands on the main server's command console, this command
