@@ -204,6 +204,22 @@ namespace Aurora.Modules.CityBuilder
                 "city", true, "city building", "City building interface",
                 "Allow for the manipulation of buildings directly.",
                 cmdBuilding);
+
+            OpenSim.Framework.MainConsole.Instance.Commands.AddCommand(
+                "city", true, "city backup", "Backup the city instance to disk/database.",
+                "Allows for the generated city to be backed up to disk or database.",
+                cmdBackup);
+
+            OpenSim.Framework.MainConsole.Instance.Commands.AddCommand(
+                "city", true, "city restore", "Restores a city from disk or database.",
+                "Allows for previously backed up cities to be restored from disk or database.",
+                cmdRestore);
+
+            OpenSim.Framework.MainConsole.Instance.Commands.AddCommand(
+                "city", true, "city list", "List all known cities",
+                "Displays a list of all cities present on disk or database.",
+                cmdList);
+
             cityDensities.Add(0.85f);
             cityDensities.Add(0.65f);
             cityDensities.Add(0.60f);
@@ -489,14 +505,6 @@ namespace Aurora.Modules.CityBuilder
             m_DefaultEstate.EstateOwner = m_DefaultUserAccount.PrincipalID;
             m_DefaultEstate.EstateName = CityEstate;
             m_DefaultEstate.EstatePass = Util.Md5Hash(m_DefaultEstatePassword);
-
-//            IGenericsConnector g = Aurora.DataManager.DataManager.RequestPlugin<IGenericsConnector>();
-//            if (g != null)
-//            {
-//                OSDMap s = new OSDMap();
-//                s.Add("Password", Util.Md5Hash("Chr1$Br00klyn"));
-//                g.AddGeneric(m_DefaultUserAccount.PrincipalID, "EstatePassword", m_DefaultEstate.EstateID.ToString(), s);
-//            }
 
             //  Obtain the scene manager.
             sceneManager = simulationBase.ApplicationRegistry.RequestModuleInterface<SceneManager>();
