@@ -356,23 +356,29 @@ namespace Aurora.Modules.CityBuilder
 
             if (m_DefaultEstate != null)
             {
+                m_log.Info("[CITY BUILDER]: Default estate present.");
                 m_DefaultEstate.EstateOwner = m_DefaultUserAccount.PrincipalID;
                 m_DefaultEstate.EstateName = CityEstate;
                 m_DefaultEstate.EstatePass = Util.Md5Hash(m_DefaultEstatePassword);
                 EstateConnector = Aurora.DataManager.DataManager.RequestPlugin<IEstateConnector>();
                 if (EstateConnector != null)
                 {
-                    EstateConnector.CreateEstate(m_DefaultEstate, regionInfo.RegionID);
+                    m_log.Info("[CITY BUILDER]: Estate connector present.");
+                    regionInfo.EstateSettings = EstateConnector.CreateEstate(m_DefaultEstate, regionInfo.RegionID);
                 }
-
+                else
+                {
+                    m_log.Info("[CITY BUILDER]: Estate connector missing.");
+                    return (false);
+                }
                 cityLandData.OwnerID = m_DefaultUserAccount.PrincipalID;
                 cityLandData.Name = CityEstate;
                 cityLandData.GlobalID = UUID.Random();
                 cityLandData.GroupID = UUID.Zero;
-                regionInfo.EstateSettings = m_DefaultEstate;
             }
             else
             {
+                m_log.Info("[CITY BUILDER]: No default estate.");
                 cityLandData.OwnerID = UUID.Zero;
                 cityLandData.GlobalID = UUID.Random();
                 cityLandData.GroupID = UUID.Zero;
