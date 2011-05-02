@@ -80,8 +80,14 @@ namespace Aurora.Modules.CityBuilder
         private string m_DefaultUserName = string.Empty;
         private string m_DefaultUserEmail = string.Empty;
         private string m_DefaultUserPword = string.Empty;
+
         private EstateSettings m_DefaultEstate = null;
+        private string m_DefaultEstateName = string.Empty;
+        private string m_DefaultEstateOwner = string.Empty;
+        private string m_DefaultEstatePassword = string.Empty;
+
         private IUserAccountService m_UserAccountService = null;
+        private IEstateConnector EstateConnector = null;
         private LandData cityLandData = new LandData();
 
         private static bool m_fGridMode = false;
@@ -352,7 +358,13 @@ namespace Aurora.Modules.CityBuilder
             {
                 m_DefaultEstate.EstateOwner = m_DefaultUserAccount.PrincipalID;
                 m_DefaultEstate.EstateName = CityEstate;
-                m_DefaultEstate.EstatePass = Util.Md5Hash("Chr1$Br00klyn");
+                m_DefaultEstate.EstatePass = Util.Md5Hash(m_DefaultEstatePassword);
+                EstateConnector = Aurora.DataManager.DataManager.RequestPlugin<IEstateConnector>();
+                if (EstateConnector != null)
+                {
+                    EstateConnector.CreateEstate(m_DefaultEstate, regionInfo.RegionID);
+                }
+
                 cityLandData.OwnerID = m_DefaultUserAccount.PrincipalID;
                 cityLandData.Name = CityEstate;
                 cityLandData.GlobalID = UUID.Random();
@@ -463,15 +475,15 @@ namespace Aurora.Modules.CityBuilder
 
             m_DefaultEstate.EstateOwner = m_DefaultUserAccount.PrincipalID;
             m_DefaultEstate.EstateName = CityEstate;
-//            m_DefaultEstate.EstatePass = m_DefaultEstatePassword;
+            m_DefaultEstate.EstatePass = Util.Md5Hash(m_DefaultEstatePassword);
 
-            IGenericsConnector g = Aurora.DataManager.DataManager.RequestPlugin<IGenericsConnector>();
-            if (g != null)
-            {
-                OSDMap s = new OSDMap();
-                s.Add("Password", Util.Md5Hash("Chr1$Br00klyn"));
-                g.AddGeneric(m_DefaultUserAccount.PrincipalID, "EstatePassword", m_DefaultEstate.EstateID.ToString(), s);
-            }
+//            IGenericsConnector g = Aurora.DataManager.DataManager.RequestPlugin<IGenericsConnector>();
+//            if (g != null)
+//            {
+//                OSDMap s = new OSDMap();
+//                s.Add("Password", Util.Md5Hash("Chr1$Br00klyn"));
+//                g.AddGeneric(m_DefaultUserAccount.PrincipalID, "EstatePassword", m_DefaultEstate.EstateID.ToString(), s);
+//            }
 
             //  Obtain the scene manager.
             sceneManager = simulationBase.ApplicationRegistry.RequestModuleInterface<SceneManager>();
@@ -663,7 +675,8 @@ namespace Aurora.Modules.CityBuilder
                 m_DefaultUserEmail = cityConfig.GetString("DefaultUserEmail", "");
                 m_DefaultUserPword = cityConfig.GetString("DefaultUserPassword", "");
                 CityEstate = cityConfig.GetString("DefaultCityEstate", "Liquid Silicon Developments");
-                sceneManager = null;
+                m_DefaultEstateOwner = cityOwner;
+                m_DefaultEstatePassword = cityConfig.GetString("DefaultEstatePassword", "");
                 cityDensities = new List<float>();
                 m_DefaultStartLocation = new Vector2(9500, 9500);
             }
