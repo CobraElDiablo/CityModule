@@ -117,14 +117,12 @@ namespace Aurora.Modules.CityBuilder
         private IConfig cityConfig = null;
         //  Configuration source from Aurora.
         private IConfigSource configSource = null;
-        //  Scene graph DEPRECIATED.
+        //  Scene graph.
         public SceneGraph sceneGraph = null;
         //  Scene manager for region creation.
         public SceneManager sceneManager = null;
         // Simulation base from Aurora.
         private ISimulationBase simulationBase = null;
-        // Region info connector (database) DEPRECIATED
-        private IRegionInfoConnector m_connector = null;
         // Densities for various parts of the city, residential, commercial, industrial etc.
         private List<float> cityDensities = new List<float>();
         private Vector2 m_DefaultStartLocation = new Vector2(9500, 9500);
@@ -911,7 +909,7 @@ namespace Aurora.Modules.CityBuilder
 //                return;
 //            }
 
-            doGenerate(32767);
+            doGenerate(CityModule.randomValue(32767));
         }
         /// <summary>
         /// Handles one of the builtin commands on the main server's command console, this command
@@ -975,6 +973,18 @@ namespace Aurora.Modules.CityBuilder
 
             doBuilding();
 
+        }
+
+        public void cmdBackup(string module, string[] cmdParams)
+        {
+        }
+
+        public void cmdRestore(string module, string[] cmdParams)
+        {
+        }
+
+        public void cmdList(string module, string[] cmdParams)
+        {
         }
 
         #endregion
