@@ -4,7 +4,7 @@ README : CITY MODULE FOR AURORA (0.2Dev)
 	to generate a city, including waterways, roads, rail, and buildings over a single region or
 	to even create the regions as needed for import of pre generated cities, or even game cities.
 
-CURRENT:	0.0.0.12
+CURRENT:	0.0.0.15
 
 	Module load and is recognised by Aurora, simple command console interface framework.
 	Some internal functionality for response to commands (does not perform any actions,
@@ -55,9 +55,14 @@ EXAMPLE CONFIGURATION FILE:
 	;; Specify a default name for the city.
 	DefaultCityName = CityVille
 	;; Specify a default avatar that owns the city, they will also own the land/estate/region.
+	;; Also password and email, if the account is not present on the server it will be created.
 	DefaultCityOwner = Cobra ElDiablo
-	;; Default estate that owns the city.
+	DefaultUserPassword = Chr1$Br00klyn
+	DefaultUserEmail = cobraeldiablo@yahoo.co.uk
+	;; Default estate that owns the city. Again if this estate is not present it will be created
+	;; and assigned to the above default user account.
 	DefaultCityEstate = Liquid Silicon Developments
+	DefaultEstatePassword = Chr1$Br00klyn
 	;; Default region size, only multiples of 16 are allowed here, so be careful it's
 	;; not checked yet.
 	DefaultRegionSize = 256
