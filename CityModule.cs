@@ -241,6 +241,18 @@ namespace Aurora.Modules.CityBuilder
             return r;
         }
 
+        private void doBackup()
+        {
+        }
+
+        private void doRestore()
+        {
+        }
+
+        private void doList()
+        {
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -378,7 +390,7 @@ namespace Aurora.Modules.CityBuilder
                 if (EstateConnector != null)
                 {
                     m_log.Info("[CITY BUILDER]: Estate connector present.");
-                    regionInfo.EstateSettings = EstateConnector.CreateEstate(m_DefaultEstate, regionInfo.RegionID);
+                    regionInfo.EstateSettings = EstateConnector.CreateEstate(m_DefaultEstate, regionInfo.ScopeID);
                     if (regionInfo.EstateSettings.Equals(null))
                     {
                         m_log.Info("[CITY BUILDER]: Estate connector failed to create estate.");
@@ -386,6 +398,8 @@ namespace Aurora.Modules.CityBuilder
                     else
                     {
                         m_log.Info("[CITY BUILDER]: Estate constructed.");
+                        m_DefaultEstate = regionInfo.EstateSettings;
+//                        m_DefaultEstate.Save();
                     }
                 }
                 else

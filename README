@@ -57,12 +57,12 @@ EXAMPLE CONFIGURATION FILE:
 	;; Specify a default avatar that owns the city, they will also own the land/estate/region.
 	;; Also password and email, if the account is not present on the server it will be created.
 	DefaultCityOwner = Cobra ElDiablo
-	DefaultUserPassword = Chr1$Br00klyn
-	DefaultUserEmail = cobraeldiablo@yahoo.co.uk
+	DefaultUserPassword = L3tm31n
+	DefaultUserEmail = username@email.domain.com
 	;; Default estate that owns the city. Again if this estate is not present it will be created
 	;; and assigned to the above default user account.
 	DefaultCityEstate = Liquid Silicon Developments
-	DefaultEstatePassword = Chr1$Br00klyn
+	DefaultEstatePassword = L3tm31n
 	;; Default region size, only multiples of 16 are allowed here, so be careful it's
 	;; not checked yet.
 	DefaultRegionSize = 256
@@ -79,7 +79,7 @@ EXAMPLE CONFIGURATION FILE:
 	;; dependant upon the server which is running Aurora. Note that the number is always squared
 	;; so 1 gives a single city region, where as 2 gives (2 * 2) 4 regions in total, 3 gives 9
 	;; and so on, note during the construction process it still asks questions so keep the number
-	;; small for now so save typing.
+	;; small for now to save typing.
 	CityRegionCount = 1
 	;; Default state of the module enabled (true) or disabled (false), regardless of whether it
 	;; is enabled or disabled the commands from the server prompt are still available, although
