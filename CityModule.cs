@@ -365,6 +365,14 @@ namespace Aurora.Modules.CityBuilder
                 {
                     m_log.Info("[CITY BUILDER]: Estate connector present.");
                     regionInfo.EstateSettings = EstateConnector.CreateEstate(m_DefaultEstate, regionInfo.RegionID);
+                    if (regionInfo.EstateSettings.Equals(null))
+                    {
+                        m_log.Info("[CITY BUILDER]: Estate connector failed to create estate.");
+                    }
+                    else
+                    {
+                        m_log.Info("[CITY BUILDER]: Estate constructed.");
+                    }
                 }
                 else
                 {
@@ -383,6 +391,7 @@ namespace Aurora.Modules.CityBuilder
                 cityLandData.GlobalID = UUID.Random();
                 cityLandData.GroupID = UUID.Zero;
                 regionInfo.EstateSettings = new EstateSettings();
+                m_DefaultEstate = regionInfo.EstateSettings;
             }
 
             //  Construct the region.
@@ -685,6 +694,7 @@ namespace Aurora.Modules.CityBuilder
                 m_DefaultEstatePassword = cityConfig.GetString("DefaultEstatePassword", "");
                 cityDensities = new List<float>();
                 m_DefaultStartLocation = new Vector2(9500, 9500);
+                startPort = cityConfig.GetInt("DefaultStartPort", 9500);
             }
             else
             {
@@ -921,6 +931,34 @@ namespace Aurora.Modules.CityBuilder
                 m_log.Info("[CITY BUILDER]: Street information");
                 m_log.InfoFormat("[CITY BUILDER]: Plot count   : {0}", cityMap.cityPlots.Count());
                 m_log.InfoFormat("[CITY BUILDER]: Buildings    : {0}", cityMap.cityBuildings.Count());
+
+                m_log.InfoFormat("[CITY BUILDER]: Default Account : {0}, {1}", m_DefaultUserName, m_DefaultUserEmail );
+
+                m_log.InfoFormat("[CITY BUILDER]: Default Estate : {0} owned by {1}",
+                    m_DefaultEstateName, m_DefaultEstateOwner );
+
+                if (m_fGridMode)
+                {
+                    m_log.Info("[CITY BUILDER]: Grid mode.");
+                }
+                else
+                {
+                    m_log.Info("[CITY BUILDER]: Standalone mode.");
+                }
+
+                m_log.InfoFormat("[CITY BUILDER]: Start port {0}", startPort );
+                m_log.InfoFormat("[CITY BUILDER]: Start location {0},{1}", m_DefaultStartLocation.X,
+                    m_DefaultStartLocation.Y);
+
+                if (cityConfig.Equals(null))
+                {
+                    m_log.Info("[CITY BUILDER]: No configuration found.");
+                }
+                else
+                {
+                    m_log.InfoFormat("[CITY BUILDER]: Configuration found {0}", cityConfig.Name);
+                }
+
             }
         }
         /// <summary>
@@ -933,7 +971,7 @@ namespace Aurora.Modules.CityBuilder
             m_log.Info("[CITY BUILDER] : Buildings commands.");
 
             string name = MainConsole.Instance.CmdPrompt("Building name ", "Building");
-            string owner = MainConsole.Instance.CmdPrompt("Owner", "Cobra ElDiablo");
+            string owner = MainConsole.Instance.CmdPrompt("Owner", cityOwner);
 
             doBuilding();
 
