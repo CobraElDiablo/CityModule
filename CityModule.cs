@@ -126,6 +126,7 @@ namespace Aurora.Modules.CityBuilder
         // Densities for various parts of the city, residential, commercial, industrial etc.
         private List<float> cityDensities = new List<float>();
         private Vector2 m_DefaultStartLocation = new Vector2(9500, 9500);
+        private Random rnd = new Random();
 
         #endregion
         /// <summary>
@@ -236,7 +237,6 @@ namespace Aurora.Modules.CityBuilder
         public static int randomValue(int range)
         {
             int r = 0;
-            Random rnd = new Random();
             r = rnd.Next(range);
             return r;
         }
@@ -386,6 +386,7 @@ namespace Aurora.Modules.CityBuilder
                 m_DefaultEstate.EstateOwner = m_DefaultUserAccount.PrincipalID;
                 m_DefaultEstate.EstateName = CityEstate;
                 m_DefaultEstate.EstatePass = Util.Md5Hash(m_DefaultEstatePassword);
+                m_DefaultEstate.EstateID = (uint)CityModule.randomValue(1000);
                 EstateConnector = Aurora.DataManager.DataManager.RequestPlugin<IEstateConnector>();
                 if (EstateConnector != null)
                 {
@@ -399,7 +400,7 @@ namespace Aurora.Modules.CityBuilder
                     {
                         m_log.Info("[CITY BUILDER]: Estate constructed.");
                         m_DefaultEstate = regionInfo.EstateSettings;
-//                        m_DefaultEstate.Save();
+                        m_DefaultEstate.EstateID = (uint)CityModule.randomValue(1000);
                     }
                 }
                 else
