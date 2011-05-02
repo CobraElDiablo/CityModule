@@ -29,6 +29,29 @@ using OpenSim;
 
 namespace Aurora.Modules.CityBuilder
 {
+    internal class CityTerrainGenerator : ITerrainEffect
+    {
+        #region ITerrainEffect Members
+
+        public void RunEffect(ITerrainChannel map)
+        {
+            int x, y;
+            for (x = 0; x < map.Width; x++)
+            {
+                for (y = 0; y < map.Height; y++)
+                {
+                    map[x, y] = TerrainUtil.PerlinNoise2D(x, y, 8, 0.45f) * 10.3f;
+                    float spherFac = TerrainUtil.SphericalFactor(x, y, map.Scene.RegionInfo.RegionSizeX / 2, map.Scene.RegionInfo.RegionSizeY / 2, 50) * 0.01f;
+                    if (map[x, y] < spherFac)
+                    {
+                        map[x, y] = spherFac;
+                    }
+                }
+            }
+        }
+
+        #endregion
+    }
     /// <summary>
     /// Describes a base layer for a city map, contains:
     ///     cityRegion          A link that denotes which region (scene) is being used for this map in the server instance.

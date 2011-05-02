@@ -77,9 +77,14 @@ namespace Aurora.Modules.CityBuilder
         #region Internal Members
 
         private UserAccount m_DefaultUserAccount = null;
+        private string m_DefaultUserName = string.Empty;
+        private string m_DefaultUserEmail = string.Empty;
+        private string m_DefaultUserPword = string.Empty;
         private EstateSettings m_DefaultEstate = null;
         private IUserAccountService m_UserAccountService = null;
         private LandData cityLandData = new LandData();
+
+        private static bool m_fGridMode = false;
 
         //  The start port number for any generated regions, this will increment for every
         // region that the plugin produces.
@@ -342,27 +347,27 @@ namespace Aurora.Modules.CityBuilder
             //  Construct land and estate data and update to reflect the found user or the newly created one.
             cityLandData = new LandData();
             RegionInfo regionInfo = new RegionInfo();
-            IScene scenePtr = cityMap.cityRegions[x, y];
 
             if (m_DefaultEstate != null)
             {
                 m_DefaultEstate.EstateOwner = m_DefaultUserAccount.PrincipalID;
                 m_DefaultEstate.EstateName = CityEstate;
+                m_DefaultEstate.EstatePass = Util.Md5Hash("Chr1$Br00klyn");
                 cityLandData.OwnerID = m_DefaultUserAccount.PrincipalID;
                 cityLandData.Name = CityEstate;
                 cityLandData.GlobalID = UUID.Random();
                 cityLandData.GroupID = UUID.Zero;
+                regionInfo.EstateSettings = m_DefaultEstate;
             }
             else
             {
                 cityLandData.OwnerID = UUID.Zero;
                 cityLandData.GlobalID = UUID.Random();
                 cityLandData.GroupID = UUID.Zero;
+                regionInfo.EstateSettings = new EstateSettings();
             }
 
             //  Construct the region.
-
-            regionInfo.EstateSettings = new EstateSettings();// m_DefaultEstate;
             regionInfo.RegionID = UUID.Random();
             regionInfo.RegionSizeX = cityConfig.GetInt("DefaultRegionSize", 256);
             regionInfo.RegionSizeY = regionInfo.RegionSizeX;
@@ -385,20 +390,6 @@ namespace Aurora.Modules.CityBuilder
                 IScene scene = (IScene)cityMap.cityRegions[x, y];
                 m_log.Info("[CITY BUILDER]: Scene manager obtained constructing region");
                 sceneManager.CreateRegion(regionInfo, out scene);
-                //  Store the created user account and estate settings if they haven't already been stored.
-//                if (m_DefaultUserAccount==null)
-//                {
-//                    m_DefaultUserAccount = scene.UserAccountService.GetUserAccount(scene.RegionInfo.ScopeID, "Cobra ElDiablo");
-//                }
-//                if (m_DefaultEstate==null)
-//                {
-//                    IEstateConnector EstateConnector = Aurora.DataManager.DataManager.RequestPlugin<IEstateConnector>();
-//                    List<EstateSettings> estates = EstateConnector.GetEstates(m_DefaultUserAccount.PrincipalID);
-//                    if (estates.Count > 0)
-//                    {
-//                        m_DefaultEstate = estates[0];
-//                    }
-//                }
             }
             else
             {
@@ -456,13 +447,15 @@ namespace Aurora.Modules.CityBuilder
 
             cityName = MainConsole.Instance.CmdPrompt("City Name ", cityName);
             cityOwner = MainConsole.Instance.CmdPrompt("City Owner ", cityOwner);
+            m_DefaultUserName = cityOwner;
 
             //  Construct the user if not present.
             m_DefaultUserAccount = m_UserAccountService.GetUserAccount(UUID.Zero, cityOwner);
             if (m_DefaultUserAccount == null)
             {
-                m_UserAccountService.CreateUser(cityOwner, Util.Md5Hash("Chr1$Br00klyn"), "cobra@localhost");
-                m_DefaultUserAccount = m_UserAccountService.GetUserAccount(UUID.Zero, cityOwner);
+                m_UserAccountService.CreateUser(m_DefaultUserName, Util.Md5Hash(m_DefaultUserPword), m_DefaultUserEmail);
+                m_DefaultUserAccount = m_UserAccountService.GetUserAccount(UUID.Zero, m_DefaultUserName);
+                cityOwner = m_DefaultUserName;
             }
 
             //  Construct the Estate/parcel data for this user.
@@ -470,11 +463,18 @@ namespace Aurora.Modules.CityBuilder
 
             m_DefaultEstate.EstateOwner = m_DefaultUserAccount.PrincipalID;
             m_DefaultEstate.EstateName = CityEstate;
+//            m_DefaultEstate.EstatePass = m_DefaultEstatePassword;
+
+            IGenericsConnector g = Aurora.DataManager.DataManager.RequestPlugin<IGenericsConnector>();
+            if (g != null)
+            {
+                OSDMap s = new OSDMap();
+                s.Add("Password", Util.Md5Hash("Chr1$Br00klyn"));
+                g.AddGeneric(m_DefaultUserAccount.PrincipalID, "EstatePassword", m_DefaultEstate.EstateID.ToString(), s);
+            }
 
             //  Obtain the scene manager.
             sceneManager = simulationBase.ApplicationRegistry.RequestModuleInterface<SceneManager>();
-
-            //  Obtain the estate/parcel interfaces.
 
             //  Construct the data instance for a city map to hold the total regions in the simulation.
             cityMap = new CityMap();
@@ -522,14 +522,14 @@ namespace Aurora.Modules.CityBuilder
                 for (ry = 0; ry < r; ry++)
                 {
                     Scene region = cityMap.cityRegions[rx, ry];
-                    ITerrainChannel tChannel = null;
-                    tChannel = new TerrainChannel(true, region);
+                    ITerrainChannel tChannel = new TerrainChannel(true, region);
                     ITerrain terrain = null;
                     try
                     {
                         region.TryRequestModuleInterface<ITerrain>(out terrain);
                         //ITerrainModule tModule = region.RequestModuleInterface<ITerrainModule>();
                         terrain.SetHeights2D(tHeight);
+                        terrain.HillsGenerator();
                     }
                     catch
                     {
@@ -659,6 +659,9 @@ namespace Aurora.Modules.CityBuilder
                 citySeed = CityModule.randomValue(257);
                 cityName = cityConfig.GetString("DefaultCityName", "CityVille");
                 cityOwner = cityConfig.GetString("DefaultCityOwner", "Cobra ElDiablo");
+                m_DefaultUserName = cityOwner;
+                m_DefaultUserEmail = cityConfig.GetString("DefaultUserEmail", "");
+                m_DefaultUserPword = cityConfig.GetString("DefaultUserPassword", "");
                 CityEstate = cityConfig.GetString("DefaultCityEstate", "Liquid Silicon Developments");
                 sceneManager = null;
                 cityDensities = new List<float>();
