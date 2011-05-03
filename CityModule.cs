@@ -516,7 +516,7 @@ namespace Aurora.Modules.CityBuilder
                 cityLandData.Name = CityEstate;
                 cityLandData.GlobalID = UUID.Random();
                 cityLandData.GroupID = UUID.Zero;
-                cityLandData.RegionID = regionInfo.RegionID;
+//                cityLandData.RegionID = regionInfo.RegionID;
             }
             else
             {
@@ -530,24 +530,24 @@ namespace Aurora.Modules.CityBuilder
             }
 
             //  Construct the region.
-            regionInfo.RegionID = UUID.Random();
             regionInfo.RegionSizeX = cityConfig.GetInt("DefaultRegionSize", 256);
             regionInfo.RegionSizeY = regionInfo.RegionSizeX;
             regionInfo.RegionType = "Mainland";
             regionInfo.ObjectCapacity = 100000;
             regionInfo.Startup = StartupType.Normal;
             regionInfo.ScopeID = UUID.Zero;// m_DefaultEstate.EstateOwner;
-            cityLandData.RegionID = regionInfo.RegionID;
-            IPAddress address = IPAddress.Parse("0.0.0.0");
-            regionInfo.InternalEndPoint = new IPEndPoint(address, startPort++);
-            regionInfo.ExternalHostName = Aurora.Framework.Utilities.GetExternalIp();
-            regionInfo.FindExternalAutomatically = true;
 
             //  Construct the regions for the city.
             for (rx = 0; rx < r; rx++)
             {
                 for (ry = 0; ry < r; ry++)
                 {
+                    regionInfo.RegionID = UUID.Random();
+                    IPAddress address = IPAddress.Parse("0.0.0.0");
+                    regionInfo.ExternalHostName = Aurora.Framework.Utilities.GetExternalIp();
+                    regionInfo.FindExternalAutomatically = true;
+                    regionInfo.InternalEndPoint = new IPEndPoint(address, startPort++);
+                    cityLandData.RegionID = regionInfo.RegionID;
                     regionInfo.RegionName = "Region" + rx + ry;
                     regionInfo.RegionLocX = (int)(m_DefaultStartLocation.X + rx);
                     regionInfo.RegionLocY = (int)(m_DefaultStartLocation.Y + ry);
