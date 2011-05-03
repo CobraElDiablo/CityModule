@@ -81,7 +81,7 @@ namespace Aurora.Modules.CityBuilder
         public Scene[,] cityRegions;                //  An array of regions covered by this city.
         public List<BuildingPlot> cityPlots = new List<BuildingPlot>();        //  A list of all the plots in this city.
         public List<CityBuilding> cityBuildings = new List<CityBuilding>();    //  A list of all buildings in this city.
-
+        public int[,] plotArray = null;
         private UUID estateIdent = UUID.Zero;
         private UUID cityMapOwner = UUID.Zero;
 
@@ -355,6 +355,7 @@ namespace Aurora.Modules.CityBuilder
         public CityMap()
         {
             cityRegions = new Scene[0,0];
+            plotArray = new int[0, 0];
         }
 
         public CityMap(uint regionCount, UUID estateOwner, UUID avatar, List<Scene> centers,
@@ -372,6 +373,7 @@ namespace Aurora.Modules.CityBuilder
 
             //  Allocate the space required for the number of regions specified.
             cityRegions = new Scene[regionCount, regionCount];
+            plotArray = new int[regionCount, regionCount];
 
             if ( centralRegions.Capacity > 0 )
             {

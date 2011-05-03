@@ -158,30 +158,33 @@ namespace Aurora.Modules.CityBuilder
      * 122  Complex     Education           Middle/Junior
      * 123  Complex     Education           Elementary/Nursery
      * 
-     * ???  Complex     Station
-     *      Complex     Docks
+     * ???  Complex     Station     Railway station
+     *      Complex     Docks       Cargo
+     *      Complex     Docks       Build
+     *      Complex     Docks       Terminal
+     *      Complex     Docks       Launch
      *      Complex     Airport
      *      Landmark    damm/lakes/beaches/mountains etc
      */
 
     /// <summary>
-    /// If a plot of land has been claimed by something in the city.
+    /// If a plot of land that has been claimed by something in the city.
     /// </summary>
     public enum PlotClaimType : uint
     {
-        CLAIM_NONE = 0,     //  Land is not claimed.
-        CLAIM_TRANSPORT=1,    //  The road or transport system.
-        CLAIM_PAVEMENT=2,     //  A pavement, at the edges of roads next to buildings.
-        CLAIM_WATER=4,        //  A lake, river or other water feature.
-        CLAIM_PARK=8,         //  A park or other open area.
-        CLAIM_BUILDING=16,     //  A single building.
-        CLAIM_COMPLEX=32,      //  Claimed as part of a larger set of buildings. This is the most common claim type.
+        CLAIM_NONE = 0,         //  Land is not claimed.
+        CLAIM_TRANSPORT=1,      //  The transport systems.
+        CLAIM_PAVEMENT=2,       //  A pavement, at the edges of roads next to buildings.
+        CLAIM_WATER=4,          //  A lake, river or other water feature.
+        CLAIM_PARK=8,           //  A park or other open area with very little or no buildings.
+        CLAIM_BUILDING=16,      //  A single building.
+        CLAIM_COMPLEX=32,       //  Claimed as part of a larger set of buildings. This is the most common claim type.
         // And note the complex can have lots of different buildings which may just have the connection of being
         // on the same plot and have no 'business' with each other.
-        CLAIM_MILITARY=64,     //  Claimed by the military.
-        CLAIM_LANDMARK=128,     // This claimed is landmarked (db).
-        CLAIM_LOCALE=256,       // Unique to this claim, unknown tag for now.
-        CLAIM_COUNT         //  END_OF_ENUM_MARKER
+        CLAIM_MILITARY=64,      //  Claimed by the military for nafarious purposes.
+        CLAIM_LANDMARK=128,     //  This claimed is landmarked.
+        CLAIM_LOCALE=256,       //  Unique to this claim, unknown tag for now. Local style buildings unique to area.
+        CLAIM_COUNT             //  END_OF_ENUM_MARKER
     };
 
     /// <summary>
@@ -257,14 +260,18 @@ namespace Aurora.Modules.CityBuilder
     public enum BuildingFlags : byte
     {
         BUILDING_FLAG_NONE = 0,
-        BUILDING_FLAG_LIGHTS = 1,   //  Navigation lights on the corners.
+        BUILDING_FLAG_LIGHTS = 1,   //  Navigation lights on the top corners of the building or on a pole.
         BUILDING_FLAG_TRIM = 2,     //  The trim around the top of the building has lighting.
         BUILDING_FLAG_LOGO = 4,     //  One or more faces of the building has a corporate logo.
         BUILDING_FLAG_TOWER = 8,    //  Building has a radio tower on the top.
         BUILDING_FLAG_ACOND = 16,   //  Building has air conditioning units.
         BUILDING_FLAG_HPAD = 32     //  Building has a helipad on the roof.
     };
-
+    /// <summary>
+    /// Grid based road system. No roading routing is implemented yet, and this style of
+    /// road network maybe useful for inside a city center but beyond that the transport
+    /// systems would need to take into account more terrain features that a city would.
+    /// </summary>
     public enum RoadDirection : byte
     {
         MAP_ROAD_NORTH,
@@ -289,7 +296,13 @@ namespace Aurora.Modules.CityBuilder
     ///  This class describes an individual building which is located on a plot of land
     /// in the city, the plot has a 2 meter border around the buildings footprint, it
     /// is also tries to make the plot a rectangular/square plot as the city is in a
-    /// grid pattern spread over either a single region or multiple regions.
+    /// grid pattern spread over either a single region or multiple regions. Note that
+    /// buildings will NOT overlap a regions boundary, if this case presents itself then
+    /// a road/walkway should be used to provide a way of splitting city blocks over
+    /// region boundaries. For example it would be better for the region boundary to be
+    /// in the middle of a road rather than straight through a building as travelling
+    /// from one side of the building to the other would induce a performance hit on the
+    /// server, not too mention the fact that it could be somewhat irritating.
     /// </summary>
     [Serializable]
     public class CityBuilding : SceneObjectGroup

@@ -380,7 +380,7 @@ namespace Aurora.Modules.CityBuilder
             if (!sceneManager.Equals(null))
             {
                 IScene scene = (IScene)cityMap.cityRegions[x, y];
-                m_log.Info("[CITY BUILDER]: Scene manager obtained constructing region");
+//                m_log.Info("[CITY BUILDER]: Scene manager obtained constructing region");
                 sceneManager.CreateRegion(regionInfo, out scene);
 //                if (scene != null)
 //                {
@@ -449,7 +449,7 @@ namespace Aurora.Modules.CityBuilder
             m_DefaultUserAccount = m_UserAccountService.GetUserAccount(UUID.Zero, cityOwner);
             if (m_DefaultUserAccount == null)
             {
-                m_UserAccountService.CreateUser(m_DefaultUserName, Util.Md5Hash(Util.Md5Hash(m_DefaultUserPword)), m_DefaultUserEmail);
+                m_UserAccountService.CreateUser(m_DefaultUserName, Util.Md5Hash(m_DefaultUserPword), m_DefaultUserEmail);
                 m_DefaultUserAccount = m_UserAccountService.GetUserAccount(UUID.Zero, m_DefaultUserName);
                 cityOwner = m_DefaultUserName;
             }
@@ -479,17 +479,16 @@ namespace Aurora.Modules.CityBuilder
 
             if (m_DefaultEstate != null)
             {
-                m_log.Info("[CITY BUILDER]: Default estate present.");
+//                m_log.Info("[CITY BUILDER]: Default estate present.");
                 m_DefaultEstate.EstateOwner = m_DefaultUserAccount.PrincipalID;
                 m_DefaultEstate.EstateName = CityEstate;
-                // It's not picking this up properly.
                 // Why does this require the password to be hashed twice?
                 m_DefaultEstate.EstatePass = Util.Md5Hash(Util.Md5Hash(m_DefaultEstatePassword));
                 m_DefaultEstate.EstateID = (uint)this.randomValue(1000);
                 EstateConnector = Aurora.DataManager.DataManager.RequestPlugin<IEstateConnector>();
                 if (EstateConnector != null)
                 {
-                    m_log.Info("[CITY BUILDER]: Estate connector present.");
+//                    m_log.Info("[CITY BUILDER]: Estate connector present.");
 // Determine if the estate is already present before attempting to create it.
 //                    List<EstateSettings> estates = EstateConnector.GetEstates(m_DefaultUserAccount.PrincipalID);
 //                    if (estates.Count <= 0)
@@ -529,6 +528,8 @@ namespace Aurora.Modules.CityBuilder
                 m_DefaultEstate = regionInfo.EstateSettings;
             }
 
+            int regionPort = startPort;
+
             //  Construct the region.
             regionInfo.RegionSizeX = cityConfig.GetInt("DefaultRegionSize", 256);
             regionInfo.RegionSizeY = regionInfo.RegionSizeX;
@@ -546,7 +547,7 @@ namespace Aurora.Modules.CityBuilder
                     IPAddress address = IPAddress.Parse("0.0.0.0");
                     regionInfo.ExternalHostName = Aurora.Framework.Utilities.GetExternalIp();
                     regionInfo.FindExternalAutomatically = true;
-                    regionInfo.InternalEndPoint = new IPEndPoint(address, startPort++);
+                    regionInfo.InternalEndPoint = new IPEndPoint(address, regionPort++);
                     cityLandData.RegionID = regionInfo.RegionID;
                     regionInfo.RegionName = "Region" + rx + ry;
                     regionInfo.RegionLocX = (int)(m_DefaultStartLocation.X + rx);
