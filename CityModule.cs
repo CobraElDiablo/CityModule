@@ -589,7 +589,7 @@ namespace Aurora.Modules.CityBuilder
                         region.TryRequestModuleInterface<ITerrain>(out terrain);
                         //ITerrainModule tModule = region.RequestModuleInterface<ITerrainModule>();
                         terrain.SetHeights2D(tHeight);
-                        terrain.HillsGenerator();
+//                        terrain.HillsGenerator();
                     }
                     catch
                     {
