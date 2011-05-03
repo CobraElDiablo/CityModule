@@ -65,6 +65,30 @@ namespace Aurora.Modules.CityBuilder
         GENSTAGE_COUNT
     };
 
+    namespace GeoSpatialData
+    {
+        public class GeoPoint
+        {
+            private Vector2 m_Point;
+        }
+
+        public class GeoLine
+        {
+            private GeoPoint m_StartPoint;
+            private GeoPoint m_EndPoint;
+        }
+
+        public class GeoLines
+        {
+            private List<GeoPoint> m_Lines;
+        }
+
+        public class GeoPolygon
+        {
+            private GeoLines m_SpatialArea;
+        }
+    }
+
     /// <summary>
     /// This is the main class that deals with this City Builder Module for Aurora/OpenSim server.
     /// </summary>
@@ -527,10 +551,6 @@ namespace Aurora.Modules.CityBuilder
                         m_log.InfoFormat("[CITY BUILDER]: Failed to construct region at {0},{1}", rx, ry);
                         return (false);
                     }
-//                    else
-//                    {
-//                        m_log.InfoFormat("[CITY BUILDER]: Region created @ {0},{1}", rx, ry);
-//                    }
                 }
             }
 
@@ -579,8 +599,15 @@ namespace Aurora.Modules.CityBuilder
             int prevRegionY = 0;
             while ( aNum > 0 )
             {
-                prevRegionX = randomValue( cityMap.cityRegions.GetUpperBound(0) ) / 2;
-                prevRegionY = randomValue( cityMap.cityRegions.GetUpperBound(1) ) / 2;
+                int currRegionX = randomValue( cityMap.cityRegions.GetUpperBound(0) ) / 2;
+                int currRegionY = randomValue( cityMap.cityRegions.GetUpperBound(1) ) / 2;
+
+                // If the location selected is the same as the previous location try again.
+                if (currRegionX == prevRegionX && currRegionY == prevRegionY)
+                {
+                    aNum--;
+                    continue;
+                }
 
                 m_log.InfoFormat("[CITY BUILDER]: Region {0}, located {1},{2}", aNum, prevRegionX, prevRegionY);
 
@@ -596,6 +623,8 @@ namespace Aurora.Modules.CityBuilder
                 {
                 }
                 aNum--;
+                prevRegionX = currRegionX;
+                prevRegionY = currRegionY;
             }
             m_log.Info("[CITY BUILDER]: [DENSITY]");
             m_log.Info("[CITY BUILDER]: [FREEWAYS]");
