@@ -459,7 +459,7 @@ namespace Aurora.Modules.CityBuilder
 
             m_DefaultEstate.EstateOwner = m_DefaultUserAccount.PrincipalID;
             m_DefaultEstate.EstateName = CityEstate;
-            m_DefaultEstate.EstatePass = Util.Md5Hash(m_DefaultEstatePassword);
+            m_DefaultEstate.EstatePass = Util.Md5Hash(Util.Md5Hash(m_DefaultEstatePassword));
 
             //  Obtain the scene manager.
             sceneManager = simulationBase.ApplicationRegistry.RequestModuleInterface<SceneManager>();
