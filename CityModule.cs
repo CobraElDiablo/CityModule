@@ -445,7 +445,8 @@ namespace Aurora.Modules.CityBuilder
             cityOwner = MainConsole.Instance.CmdPrompt("City Owner ", cityOwner);
             m_DefaultUserName = cityOwner;
 
-            //  Construct the user if not present.
+            //  Make sure that the user and estate information specified in the configuration file
+            // have been loaded and the information has either been found or has been created.
             m_DefaultUserAccount = m_UserAccountService.GetUserAccount(UUID.Zero, cityOwner);
             if (m_DefaultUserAccount == null)
             {
@@ -471,40 +472,20 @@ namespace Aurora.Modules.CityBuilder
             cityMap.cityPlots = new List<BuildingPlot>();
             cityMap.cityBuildings = new List<CityBuilding>();
 
-            //  Make sure that the user and estate information specified in the configuration file
-            // have been loaded and the information has either been found or has been created.
             //  Construct land and estate data and update to reflect the found user or the newly created one.
             cityLandData = new LandData();
             RegionInfo regionInfo = new RegionInfo();
 
             if (m_DefaultEstate != null)
             {
-//                m_log.Info("[CITY BUILDER]: Default estate present.");
                 m_DefaultEstate.EstateOwner = m_DefaultUserAccount.PrincipalID;
                 m_DefaultEstate.EstateName = CityEstate;
-                // Why does this require the password to be hashed twice?
                 m_DefaultEstate.EstatePass = Util.Md5Hash(Util.Md5Hash(m_DefaultEstatePassword));
                 m_DefaultEstate.EstateID = (uint)this.randomValue(1000);
                 EstateConnector = Aurora.DataManager.DataManager.RequestPlugin<IEstateConnector>();
                 if (EstateConnector != null)
                 {
-//                    m_log.Info("[CITY BUILDER]: Estate connector present.");
-// Determine if the estate is already present before attempting to create it.
-//                    List<EstateSettings> estates = EstateConnector.GetEstates(m_DefaultUserAccount.PrincipalID);
-//                    if (estates.Count <= 0)
-//                    {
                     regionInfo.EstateSettings = EstateConnector.CreateEstate(m_DefaultEstate, regionInfo.RegionID);
-//                    }
-//                    else
-//                    {
-//                    if (regionInfo.EstateSettings.Equals(null))
-//                    {
-//                        m_log.Info("[CITY BUILDER]: Estate connector failed to create estate.");
-//                    }
-//                    else
-//                    {
-//                        m_log.Info("[CITY BUILDER]: Estate constructed.");
-//                    }
                 }
                 else
                 {
@@ -515,17 +496,6 @@ namespace Aurora.Modules.CityBuilder
                 cityLandData.Name = CityEstate;
                 cityLandData.GlobalID = UUID.Random();
                 cityLandData.GroupID = UUID.Zero;
-//                cityLandData.RegionID = regionInfo.RegionID;
-            }
-            else
-            {
-                m_log.Info("[CITY BUILDER]: No default estate.");
-                cityLandData.OwnerID = UUID.Zero;
-                cityLandData.GlobalID = UUID.Random();
-                cityLandData.GroupID = UUID.Zero;
-                regionInfo.EstateSettings = new EstateSettings();
-                regionInfo.EstateSettings.EstateID = (uint)this.randomValue(1000);
-                m_DefaultEstate = regionInfo.EstateSettings;
             }
 
             int regionPort = startPort;
@@ -536,7 +506,7 @@ namespace Aurora.Modules.CityBuilder
             regionInfo.RegionType = "Mainland";
             regionInfo.ObjectCapacity = 100000;
             regionInfo.Startup = StartupType.Normal;
-            regionInfo.ScopeID = UUID.Zero;// m_DefaultEstate.EstateOwner;
+            regionInfo.ScopeID = UUID.Zero;
 
             //  Construct the regions for the city.
             for (rx = 0; rx < r; rx++)
@@ -557,10 +527,10 @@ namespace Aurora.Modules.CityBuilder
                         m_log.InfoFormat("[CITY BUILDER]: Failed to construct region at {0},{1}", rx, ry);
                         return (false);
                     }
-                    else
-                    {
-                        m_log.InfoFormat("[CITY BUILDER]: Region created @ {0},{1}", rx, ry);
-                    }
+//                    else
+//                    {
+//                        m_log.InfoFormat("[CITY BUILDER]: Region created @ {0},{1}", rx, ry);
+//                    }
                 }
             }
 
@@ -588,9 +558,7 @@ namespace Aurora.Modules.CityBuilder
                     try
                     {
                         region.TryRequestModuleInterface<ITerrain>(out terrain);
-                        //ITerrainModule tModule = region.RequestModuleInterface<ITerrainModule>();
                         terrain.SetHeights2D(tHeight);
-//                        terrain.HillsGenerator();
                     }
                     catch
                     {
