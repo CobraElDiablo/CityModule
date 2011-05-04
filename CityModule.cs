@@ -43,8 +43,8 @@ using OpenSim.Framework;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 //  Add support for new namespace that deals with geospatial data types and processing
-// of basic data forms and there communications and storage methods.
-using Aurora.Modules.CityBuilder.GeoSpatialData;
+// of basic data forms along with the communications and storage of these data types.
+using Aurora.Modules.CityBuilder.GeoSpatial.DataTYpes;
 
 namespace Aurora.Modules.CityBuilder
 {
