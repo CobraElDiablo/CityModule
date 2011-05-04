@@ -14,6 +14,8 @@ using System.Linq;
 using System.Text;
 using System.Security.Cryptography;
 using System.Net;
+using System.Xml;
+using System.Xml.Serialization;
 
 using log4net;
 
@@ -44,7 +46,7 @@ using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 //  Add support for new namespace that deals with geospatial data types and processing
 // of basic data forms along with the communications and storage of these data types.
-using Aurora.Modules.CityBuilder.GeoSpatial.DataTYpes;
+using Aurora.Modules.CityBuilder.GeoSpatial.DataTypes;
 
 namespace Aurora.Modules.CityBuilder
 {
@@ -72,25 +74,28 @@ namespace Aurora.Modules.CityBuilder
     /// <summary>
     /// This is the main class that deals with this City Builder Module for Aurora/OpenSim server.
     /// </summary>
-    public class CityModule : IApplicationPlugin, ICityModule
+    [Serializable]
+    public class CityModule : IApplicationPlugin, ICityModule, IDataTransferable
+
     {
         /// <summary>
         /// This section of the module deals with the properties that are specific to the city or to the
         /// module itself. Some of the parameters are changeable via the set/get city commands on the console.
         /// </summary>
         #region Internal Members
-
+        [XmlIgnore]
         private UserAccount m_DefaultUserAccount = null;
         private string m_DefaultUserName = string.Empty;
         private string m_DefaultUserEmail = string.Empty;
         private string m_DefaultUserPword = string.Empty;
-
+        [XmlIgnore]
         private EstateSettings m_DefaultEstate = null;
         private string m_DefaultEstateName = string.Empty;
         private string m_DefaultEstateOwner = string.Empty;
         private string m_DefaultEstatePassword = string.Empty;
-
+        [XmlIgnore]
         private IUserAccountService m_UserAccountService = null;
+        [XmlIgnore]
         private IEstateConnector EstateConnector = null;
         private LandData cityLandData = new LandData();
 
@@ -101,8 +106,10 @@ namespace Aurora.Modules.CityBuilder
         private int startPort = 9500;
         //  Determines whether the plugin is enabled or not, if disabled then commands issued
         // on the command console will be ignored.
+        [XmlIgnore]
         private bool m_fEnabled = false;
         //  Has the plugin been initialised (installed).
+        [XmlIgnore]
         private bool m_fInitialised = false;
         //  The random value to use for city generation.
         private int citySeed = 0;
@@ -112,20 +119,27 @@ namespace Aurora.Modules.CityBuilder
         // The owners name (avatar name first/last) that owns the entire region, defaults to
         // nothing (same as UUID.Zero) which means it's owned by the server and not an avatar.
         private string cityOwner = string.Empty;
+        [XmlIgnore] // Duplicate of m_DefaultEstateName, todo remove and change all references to m_DefaultEstateName.
         private string CityEstate = string.Empty;
         //  For logging purposes.
+        [XmlIgnore]
         public static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         //  A map of the city, includes plots, buildings and all regions.
         private CityMap cityMap = null;
         //  Configuration for the plugin.
+        [XmlIgnore]
         private IConfig cityConfig = null;
         //  Configuration source from Aurora.
+        [XmlIgnore]
         private IConfigSource configSource = null;
         //  Scene graph.
+        [XmlIgnore]
         public SceneGraph sceneGraph = null;
         //  Scene manager for region creation.
+        [XmlIgnore]
         public SceneManager sceneManager = null;
         // Simulation base from Aurora.
+        [XmlIgnore]
         private ISimulationBase simulationBase = null;
         // Densities for various parts of the city, residential, commercial, industrial etc.
         private List<float> cityDensities = new List<float>();
@@ -265,7 +279,15 @@ namespace Aurora.Modules.CityBuilder
         /// <returns></returns>
         private bool doExport(string filePath, bool GTAIV)
         {
-            if (GTAIV) return (false);
+            //  Initial stage for the export/import functionality is the ability to export/import
+            // the data correctly for the current city, uses OSDMap. For now the GTAIV flag is 
+            // ignored, this needs to be changed to allow for internal, GTA and GIS data sets to 
+            // be used for cities.
+            if (filePath == null)
+            {
+                return (false);
+            }
+
             return (false);
         }
         /// <summary>

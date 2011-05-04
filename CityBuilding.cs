@@ -333,6 +333,7 @@ namespace Aurora.Modules.CityBuilder
         private UUID buildingGUID = UUID.Random();  //  Unique to either a group (complex) or single building.
         private UUID buildingUUID = UUID.Random();  //  Unique for this building
         private UUID buildingOwner = UUID.Zero; // Should this be the same as the SceneObjectGroup 'owner'?
+        [XmlIgnore]
         private Scene scene = null; // Which scene or region this building belongs too, needed to primitive manipulation.
         #endregion
 
