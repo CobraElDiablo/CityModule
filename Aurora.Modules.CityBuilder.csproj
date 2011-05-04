@@ -112,6 +112,7 @@
     <Compile Include="CityModule.cs" />
     <Compile Include="CityMap.cs" />
     <Compile Include="CityTexture.cs" />
+    <Compile Include="GeoSpatialData\GeoSpatialData.cs" />
     <Compile Include="ICityModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

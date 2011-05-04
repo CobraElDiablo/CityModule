@@ -42,6 +42,10 @@ using OpenSim.Services.Interfaces;
 using OpenSim.Framework;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
+//  Add support for new namespace that deals with geospatial data types and processing
+// of basic data forms and there communications and storage methods.
+using Aurora.Modules.CityBuilder.GeoSpatialData;
+
 namespace Aurora.Modules.CityBuilder
 {
 
@@ -64,30 +68,6 @@ namespace Aurora.Modules.CityBuilder
         GENSTAGE_BUILDINGS,
         GENSTAGE_COUNT
     };
-
-    namespace GeoSpatialData
-    {
-        public class GeoPoint
-        {
-            private Vector2 m_Point;
-        }
-
-        public class GeoLine
-        {
-            private GeoPoint m_StartPoint;
-            private GeoPoint m_EndPoint;
-        }
-
-        public class GeoLines
-        {
-            private List<GeoPoint> m_Lines;
-        }
-
-        public class GeoPolygon
-        {
-            private GeoLines m_SpatialArea;
-        }
-    }
 
     /// <summary>
     /// This is the main class that deals with this City Builder Module for Aurora/OpenSim server.
