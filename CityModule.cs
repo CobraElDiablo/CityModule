@@ -131,9 +131,6 @@ namespace Aurora.Modules.CityBuilder
         //  Configuration source from Aurora.
         [XmlIgnore]
         private IConfigSource configSource = null;
-        //  Scene graph.
-        [XmlIgnore]
-        public SceneGraph sceneGraph = null;
         //  Scene manager for region creation.
         [XmlIgnore]
         public SceneManager sceneManager = null;
@@ -238,16 +235,6 @@ namespace Aurora.Modules.CityBuilder
                 "Displays a list of all cities present on disk or database.",
                 cmdList);
 
-            cityDensities.Add(0.85f);
-            cityDensities.Add(0.65f);
-            cityDensities.Add(0.60f);
-            cityDensities.Add(0.56f);
-
-            cityMap = new CityMap();
-            if (cityMap.cityRegions.GetUpperBound(0) <= 0 || cityMap.cityRegions.GetUpperBound(1) <= 0)
-            {
-                cityMap.cityRegions = new Scene[1,1];
-            }
             m_fInitialised = true;
         }
 
@@ -405,12 +392,7 @@ namespace Aurora.Modules.CityBuilder
             if (!sceneManager.Equals(null))
             {
                 IScene scene = (IScene)cityMap.cityRegions[x, y];
-//                m_log.Info("[CITY BUILDER]: Scene manager obtained constructing region");
                 sceneManager.CreateRegion(regionInfo, out scene);
-//                if (scene != null)
-//                {
-//                    cityMap.cityRegions[x, y] = (Scene)scene;
-//                }
             }
             else
             {
@@ -580,7 +562,6 @@ namespace Aurora.Modules.CityBuilder
                 {
                     for (ry = 0; ry < r; ry++)
                     {
-//                        regionInfo.RegionID = UUID.Random();
                         IPAddress address = IPAddress.Parse("0.0.0.0");
                         regionInfo.ExternalHostName = Aurora.Framework.Utilities.GetExternalIp();
                         regionInfo.FindExternalAutomatically = true;
@@ -846,11 +827,6 @@ namespace Aurora.Modules.CityBuilder
         public SceneManager SceneManager
         {
             get { return sceneManager; }
-        }
-
-        public SceneGraph SceneGraph
-        {
-            get { return sceneGraph; }
         }
 
         public Vector2 CitySize
