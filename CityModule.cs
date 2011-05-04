@@ -76,7 +76,6 @@ namespace Aurora.Modules.CityBuilder
     /// </summary>
     [Serializable]
     public class CityModule : IApplicationPlugin, ICityModule, IDataTransferable
-
     {
         /// <summary>
         /// This section of the module deals with the properties that are specific to the city or to the
@@ -461,7 +460,7 @@ namespace Aurora.Modules.CityBuilder
             }
 
             //  Decide where the city is to be placed within the server instance.
-            int r = this.randomValue(16);// (int)(27 / 2.45f + (((4 / 5) * 4) / 3));
+            int r = this.randomValue(10);
 
             string regionCount = MainConsole.Instance.CmdPrompt("Region Count ", r.ToString());
             r = Convert.ToInt32(regionCount);
@@ -628,44 +627,26 @@ namespace Aurora.Modules.CityBuilder
                 prevRegionX = currRegionX;
                 prevRegionY = currRegionY;
             }
+
             m_log.Info("[CITY BUILDER]: [DENSITY]");
+            float avgDensity = (cityDensities[0] + cityDensities[1] + cityDensities[2] + cityDensities[3]) / 4;
+
             m_log.Info("[CITY BUILDER]: [FREEWAYS]");
             m_log.Info("[CITY BUILDER]: [HIGHWAYS]");
             m_log.Info("[CITY BUILDER]: [STREETS]");
+            m_log.Info("[CITY BUILDER]: [RAILWAYS]");
+            
             m_log.InfoFormat("[CITY BUILDER]: [RESIDENTIAL DENSITY] {0}%", cityDensities[0] * 100);
             m_log.InfoFormat("[CITY BUILDER]: [COMMERCIAL DENSITY] {0}%", cityDensities[1] * 100);
             m_log.InfoFormat("[CITY BUILDER]: [CORPORATE DENSITY] {0}%", cityDensities[2] * 100);
             m_log.InfoFormat("[CITY BUILDER]: [INDUSTRIAL DENISTY] {0}%", cityDensities[3] * 100);
+            m_log.InfoFormat("[CITY BUILDER]: [AVERAGE DENSITY] {0}%", avgDensity);
+
             m_log.Info("[CITY BUILDER]: [BLOCKS]");
             m_log.Info("[CITY BUILDER]: [ALLOTMENT PLOTS]");
             m_log.Info("[CITY BUILDER]: [BUILDINGS]");
 
             return (true);
-        }
-
-        #endregion
-        /// <summary>
-        /// 
-        /// </summary>
-        #region ICityModule Methods
-
-        public SceneManager SceneManager
-        {
-            get { return sceneManager; }
-        }
-
-        public SceneGraph SceneGraph
-        {
-            get { return sceneGraph; }
-        }
-
-        public Vector2 CitySize
-        {
-            get
-            {
-                Vector2 size = new Vector2((float)cityMap.cityRegions.GetUpperBound(0), (float)cityMap.cityRegions.GetUpperBound(1));
-                return size;
-            }
         }
 
         #endregion
@@ -813,6 +794,72 @@ namespace Aurora.Modules.CityBuilder
         {
             m_log.Info("CityModule.Dispose");
         }
+        #endregion
+        /// <summary>
+        /// 
+        /// </summary>
+        #region ICityModule Methods
+
+        public SceneManager SceneManager
+        {
+            get { return sceneManager; }
+        }
+
+        public SceneGraph SceneGraph
+        {
+            get { return sceneGraph; }
+        }
+
+        public Vector2 CitySize
+        {
+            get
+            {
+                Vector2 size = new Vector2((float)cityMap.cityRegions.GetUpperBound(0), (float)cityMap.cityRegions.GetUpperBound(1));
+                return size;
+            }
+        }
+
+        #endregion
+        /// <summary>
+        /// 
+        /// </summary>
+        #region IDataTransferable Methods
+
+        public override CityModule Copy()
+        {
+            //  construct a new class instance.
+            CityModule module = new CityModule();
+            //  copy across the internal property settings.
+            //  return the new copy for the class instance.
+            return (module);
+        }
+
+        public override Dictionary<string, object> ToKeyValuePairs()
+        {
+            return (null);
+        }
+
+        public override OSDMap ToOSD()
+        {
+            return (null);
+        }
+
+        public override void FromOSD(OSDMap map)
+        {
+        }
+
+        public override void FromKVP(Dictionary<string, object> KVP)
+        {
+            FromOSD(Util.DictionaryToOSD(KVP));
+        }
+
+        public override IDataTransferable Duplicate()
+        {
+            CityModule c = new CityModule();
+            c.FromOSD(ToOSD());
+            return (null);
+        }
+
         #endregion
         /// <summary>
         /// Console command interface method.
