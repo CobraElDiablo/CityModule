@@ -75,7 +75,7 @@ namespace Aurora.Modules.CityBuilder
     /// This is the main class that deals with this City Builder Module for Aurora/OpenSim server.
     /// </summary>
     [Serializable]
-    public class CityModule : IApplicationPlugin, ICityModule, IDataTransferable
+    public class CityModule : IDataTransferable, IApplicationPlugin, ICityModule
     {
         /// <summary>
         /// This section of the module deals with the properties that are specific to the city or to the
@@ -475,19 +475,15 @@ namespace Aurora.Modules.CityBuilder
             m_DefaultUserAccount = m_UserAccountService.GetUserAccount(UUID.Zero, cityOwner);
             if (m_DefaultUserAccount == null)
             {
+                m_log.InfoFormat("[CITY BUILDER]: Creating default account {0}", m_DefaultUserName);
                 m_UserAccountService.CreateUser(m_DefaultUserName, Util.Md5Hash(m_DefaultUserPword), m_DefaultUserEmail);
                 m_DefaultUserAccount = m_UserAccountService.GetUserAccount(UUID.Zero, m_DefaultUserName);
                 cityOwner = m_DefaultUserName;
             }
+            else
+                m_log.InfoFormat("[CITY BUILDER]: Account found for {0}", m_DefaultUserName);
 
-            //  Construct the Estate/parcel data for this user.
-            m_DefaultEstate = new EstateSettings();
-
-            m_DefaultEstate.EstateOwner = m_DefaultUserAccount.PrincipalID;
-            m_DefaultEstate.EstateName = CityEstate;
-            m_DefaultEstate.EstatePass = Util.Md5Hash(Util.Md5Hash(m_DefaultEstatePassword));
-
-            //  Obtain the scene manager.
+            // Obtain the scene manager that the server instance is using.
             sceneManager = simulationBase.ApplicationRegistry.RequestModuleInterface<SceneManager>();
 
             //  Construct the data instance for a city map to hold the total regions in the simulation.
@@ -501,27 +497,53 @@ namespace Aurora.Modules.CityBuilder
             cityLandData = new LandData();
             RegionInfo regionInfo = new RegionInfo();
 
-            if (m_DefaultEstate != null)
+            regionInfo.RegionID = UUID.Random();
+
+            //  Determine if the default user account as specified in City Builder's configuration file
+            // has any predefined estates, if so, just select the first one for now. Perhaps a search of
+            // the estates to attempt to find a match to the details from the configuration file.
+            EstateConnector = Aurora.DataManager.DataManager.RequestPlugin<IEstateConnector>();
+            // Valid estate connection established.
+            if (EstateConnector != null)
             {
-                m_DefaultEstate.EstateOwner = m_DefaultUserAccount.PrincipalID;
-                m_DefaultEstate.EstateName = CityEstate;
-                m_DefaultEstate.EstatePass = Util.Md5Hash(Util.Md5Hash(m_DefaultEstatePassword));
-                m_DefaultEstate.EstateID = (uint)this.randomValue(1000);
-                EstateConnector = Aurora.DataManager.DataManager.RequestPlugin<IEstateConnector>();
-                if (EstateConnector != null)
+                //  Valid estate connector, determine if the default user account has any estates.
+                List<EstateSettings> estates = EstateConnector.GetEstates(m_DefaultUserAccount.PrincipalID);
+                // No estates are found, so construct a new one based on the default estate settings
+                // from the configuration file.
+                if (estates == null)
                 {
+                    // No estates present so construct one.
+                    m_DefaultEstate = new EstateSettings();
+
+                    m_log.InfoFormat("[CITY BUILDER]: No estates found for user {0}, constructing default estate.", m_DefaultUserAccount.Name);
+
+                    m_DefaultEstate.EstateOwner = m_DefaultUserAccount.PrincipalID;
+                    m_DefaultEstate.EstateName = m_DefaultEstateName;
+                    m_DefaultEstate.EstatePass = Util.Md5Hash(Util.Md5Hash(m_DefaultEstatePassword));
+                    m_DefaultEstate.EstateID = (uint)this.randomValue(1000);
+
                     regionInfo.EstateSettings = EstateConnector.CreateEstate(m_DefaultEstate, regionInfo.RegionID);
                 }
                 else
                 {
-                    m_log.Info("[CITY BUILDER]: Estate connector missing.");
-                    return (false);
+                    //  Estates have been found, select the first estate in the list. No checking is done
+                    // against the configuration file settings.
+                    m_DefaultEstate = estates[0];
+                    regionInfo.EstateSettings = m_DefaultEstate;
+                    m_log.InfoFormat("[CITY BUILDER]: {0} estates found for user {1}, selecting {2}",
+                        estates.Count, m_DefaultUserAccount.Name, m_DefaultEstate.EstateName);
                 }
-                cityLandData.OwnerID = m_DefaultUserAccount.PrincipalID;
-                cityLandData.Name = CityEstate;
-                cityLandData.GlobalID = UUID.Random();
-                cityLandData.GroupID = UUID.Zero;
             }
+            else
+            {
+                m_log.Info("[CITY BUILDER]: No estate connection with server found.");
+                return (false);
+            }
+
+            cityLandData.OwnerID = m_DefaultUserAccount.PrincipalID;
+            cityLandData.Name = m_DefaultEstateName;
+            cityLandData.GlobalID = UUID.Random();
+            cityLandData.GroupID = UUID.Zero;
 
             int regionPort = startPort;
 
@@ -533,24 +555,45 @@ namespace Aurora.Modules.CityBuilder
             regionInfo.Startup = StartupType.Normal;
             regionInfo.ScopeID = UUID.Zero;
 
-            //  Construct the regions for the city.
-            for (rx = 0; rx < r; rx++)
+            if (r == 1)
             {
-                for (ry = 0; ry < r; ry++)
+                m_log.Info("[CITY BUILDER]: Single region city.");
+                IPAddress address = IPAddress.Parse("0.0.0.0");
+                regionInfo.ExternalHostName = Aurora.Framework.Utilities.GetExternalIp();
+                regionInfo.FindExternalAutomatically = true;
+                regionInfo.InternalEndPoint = new IPEndPoint(address, regionPort++);
+                cityLandData.RegionID = regionInfo.RegionID;
+                regionInfo.RegionName = "Region00";
+                regionInfo.RegionLocX = (int)m_DefaultStartLocation.X;
+                regionInfo.RegionLocY = (int)m_DefaultStartLocation.Y;
+                if (!createRegion(0, 0, regionInfo))
                 {
-                    regionInfo.RegionID = UUID.Random();
-                    IPAddress address = IPAddress.Parse("0.0.0.0");
-                    regionInfo.ExternalHostName = Aurora.Framework.Utilities.GetExternalIp();
-                    regionInfo.FindExternalAutomatically = true;
-                    regionInfo.InternalEndPoint = new IPEndPoint(address, regionPort++);
-                    cityLandData.RegionID = regionInfo.RegionID;
-                    regionInfo.RegionName = "Region" + rx + ry;
-                    regionInfo.RegionLocX = (int)(m_DefaultStartLocation.X + rx);
-                    regionInfo.RegionLocY = (int)(m_DefaultStartLocation.Y + ry);
-                    if (!createRegion(rx, ry, regionInfo))
+                    m_log.Info("[CITY BUILDER]: Failed to construct region.");
+                    return (false);
+                }
+            }
+            else if (r > 1)
+            {
+                m_log.Info("[CITY BUILDER]: Multi-region city.");
+                //  Construct the regions for the city.
+                for (rx = 0; rx < r; rx++)
+                {
+                    for (ry = 0; ry < r; ry++)
                     {
-                        m_log.InfoFormat("[CITY BUILDER]: Failed to construct region at {0},{1}", rx, ry);
-                        return (false);
+//                        regionInfo.RegionID = UUID.Random();
+                        IPAddress address = IPAddress.Parse("0.0.0.0");
+                        regionInfo.ExternalHostName = Aurora.Framework.Utilities.GetExternalIp();
+                        regionInfo.FindExternalAutomatically = true;
+                        regionInfo.InternalEndPoint = new IPEndPoint(address, regionPort++);
+                        cityLandData.RegionID = regionInfo.RegionID;
+                        regionInfo.RegionName = "Region" + rx + ry;
+                        regionInfo.RegionLocX = (int)(m_DefaultStartLocation.X + rx);
+                        regionInfo.RegionLocY = (int)(m_DefaultStartLocation.Y + ry);
+                        if (!createRegion(rx, ry, regionInfo))
+                        {
+                            m_log.InfoFormat("[CITY BUILDER]: Failed to construct region at {0},{1}", rx, ry);
+                            return (false);
+                        }
                     }
                 }
             }
@@ -825,14 +868,14 @@ namespace Aurora.Modules.CityBuilder
         /// </summary>
         #region IDataTransferable Methods
 
-        public override CityModule Copy()
-        {
+//        public override CityModule Copy()
+//        {
             //  construct a new class instance.
-            CityModule module = new CityModule();
+//            CityModule module = new CityModule();
             //  copy across the internal property settings.
             //  return the new copy for the class instance.
-            return (module);
-        }
+//            return (module);
+//        }
 
         public override Dictionary<string, object> ToKeyValuePairs()
         {

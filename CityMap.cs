@@ -27,7 +27,7 @@ using Aurora.Framework;
 using OpenSim.Framework;
 using OpenSim;
 
-using Aurora.Modules.CityBuilder.GeoSpatialData;
+using Aurora.Modules.CityBuilder.GeoSpatial.DataTypes;
 
 namespace Aurora.Modules.CityBuilder
 {
