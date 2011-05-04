@@ -24,6 +24,8 @@ using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
+using Aurora.Framework;
+
 namespace Aurora.Modules.CityBuilder
 {
     /*
@@ -305,7 +307,7 @@ namespace Aurora.Modules.CityBuilder
     /// server, not too mention the fact that it could be somewhat irritating.
     /// </summary>
     [Serializable]
-    public class CityBuilding : SceneObjectGroup
+    public class CityBuilding : IDataTransferable, SceneObjectGroup
     {
         #region Internal Members
         //  Data properties for this instance of a building.
@@ -457,6 +459,9 @@ namespace Aurora.Modules.CityBuilder
         {
         }
 
+        #endregion
+
+        #region IDataTransferable Method
         #endregion
 
         #region Public Methods

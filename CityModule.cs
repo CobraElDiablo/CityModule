@@ -134,6 +134,8 @@ namespace Aurora.Modules.CityBuilder
         //  Scene manager for region creation.
         [XmlIgnore]
         public SceneManager sceneManager = null;
+        [XmlIgnore]
+        private SceneGraph sceneGraph = null;
         // Simulation base from Aurora.
         [XmlIgnore]
         private ISimulationBase simulationBase = null;
