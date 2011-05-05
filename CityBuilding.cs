@@ -307,7 +307,7 @@ namespace Aurora.Modules.CityBuilder
     /// server, not too mention the fact that it could be somewhat irritating.
     /// </summary>
     [Serializable]
-    public class CityBuilding : IDataTransferable, SceneObjectGroup
+    public class CityBuilding : /*IDataTransferable,*/ SceneObjectGroup
     {
         #region Internal Members
         //  Data properties for this instance of a building.

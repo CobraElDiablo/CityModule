@@ -559,19 +559,21 @@ namespace Aurora.Modules.CityBuilder
             else if (r > 1)
             {
                 m_log.Info("[CITY BUILDER]: Multi-region city.");
+                regionInfo.ExternalHostName = Aurora.Framework.Utilities.GetExternalIp();
+                regionInfo.FindExternalAutomatically = true;
                 //  Construct the regions for the city.
                 for (rx = 0; rx < r; rx++)
                 {
                     for (ry = 0; ry < r; ry++)
                     {
                         IPAddress address = IPAddress.Parse("0.0.0.0");
-                        regionInfo.ExternalHostName = Aurora.Framework.Utilities.GetExternalIp();
-                        regionInfo.FindExternalAutomatically = true;
                         regionInfo.InternalEndPoint = new IPEndPoint(address, regionPort++);
                         cityLandData.RegionID = regionInfo.RegionID;
                         regionInfo.RegionName = "Region" + rx + ry;
                         regionInfo.RegionLocX = (int)(m_DefaultStartLocation.X + rx);
                         regionInfo.RegionLocY = (int)(m_DefaultStartLocation.Y + ry);
+                        m_log.InfoFormat("[CITY BUILDER]: '{0}' @ {1},{2}, http://{3}/", regionInfo.RegionName,
+                            regionInfo.RegionLocX, regionInfo.RegionLocY, regionInfo.InternalEndPoint);
                         if (!createRegion(rx, ry, regionInfo))
                         {
                             m_log.InfoFormat("[CITY BUILDER]: Failed to construct region at {0},{1}", rx, ry);
@@ -829,6 +831,11 @@ namespace Aurora.Modules.CityBuilder
         public SceneManager SceneManager
         {
             get { return sceneManager; }
+        }
+
+        public SceneGraph SceneGraph
+        {
+            get { return sceneGraph; }
         }
 
         public Vector2 CitySize
