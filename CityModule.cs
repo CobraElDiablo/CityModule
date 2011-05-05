@@ -562,6 +562,7 @@ namespace Aurora.Modules.CityBuilder
                 regionInfo.ExternalHostName = Aurora.Framework.Utilities.GetExternalIp();
                 regionInfo.FindExternalAutomatically = true;
                 //  Construct the regions for the city.
+                regionPort = startPort;
                 for (rx = 0; rx < r; rx++)
                 {
                     for (ry = 0; ry < r; ry++)
