@@ -507,6 +507,10 @@ namespace Aurora.Modules.CityBuilder
                     m_DefaultEstate.EstateID = (uint)this.randomValue(1000);
 
                     regionInfo.EstateSettings = EstateConnector.CreateEstate(m_DefaultEstate, regionInfo.RegionID);
+                    if (!EstateConnector.LinkRegion(regionInfo.RegionID, (int)m_DefaultEstate.EstateID, m_DefaultEstate.EstatePass))
+                    {
+                        ;
+                    }
                 }
                 else
                 {
@@ -658,7 +662,13 @@ namespace Aurora.Modules.CityBuilder
             }
 
             m_log.Info("[CITY BUILDER]: [DENSITY]");
-            float avgDensity = (cityDensities[0] + cityDensities[1] + cityDensities[2] + cityDensities[3]) / 4;
+            float avgDensity = 0.0f;
+            
+            avgDensity += cityDensities[0];
+            avgDensity += cityDensities[1];
+            avgDensity += cityDensities[2];
+            avgDensity += cityDensities[3];
+            avgDensity /= 4;
 
             m_log.Info("[CITY BUILDER]: [FREEWAYS]");
             m_log.Info("[CITY BUILDER]: [HIGHWAYS]");
@@ -756,10 +766,6 @@ namespace Aurora.Modules.CityBuilder
                 //  Configuration source from Aurora.
                 cityConfig = new ConfigBase("CityBuilder",configSource);
                 cityDensities = new List<float>();
-                cityDensities.Add(0.85f);
-                cityDensities.Add(0.75f);
-                cityDensities.Add(0.65f);
-                cityDensities.Add(0.45f);
                 m_DefaultStartLocation = new Vector2(9500, 9500);
                 // automatically disable the module if a configuration is not found. You can
                 // manually enable the module and then set its internal properties before using
@@ -767,6 +773,10 @@ namespace Aurora.Modules.CityBuilder
                 m_fEnabled = false;
             }
 
+            cityDensities.Add(0.85f);
+            cityDensities.Add(0.75f);
+            cityDensities.Add(0.65f);
+            cityDensities.Add(0.45f);
             //  Install the module, does not alter the enabled flag! This allows for the plugin
             // to install some commands for the main servers console but prevents any use of 
             // the plugin until the internal properties are set correctly.
