@@ -1,4 +1,12 @@
-﻿using System;
+﻿/*
+ *  This code file deals with the procedurally generated textures that
+ *  are to be used for the buildings, these include things like wood, stone
+ *  rocks, glass but in a manner design so that when applied to a face of
+ *  one of the primitivies that make up a building it will appear to be a
+ *  true building face, ie windows with lights on, blinds and lighting.
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;

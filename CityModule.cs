@@ -507,10 +507,6 @@ namespace Aurora.Modules.CityBuilder
                     m_DefaultEstate.EstateID = (uint)this.randomValue(1000);
 
                     regionInfo.EstateSettings = EstateConnector.CreateEstate(m_DefaultEstate, regionInfo.RegionID);
-                    if (!EstateConnector.LinkRegion(regionInfo.RegionID, (int)m_DefaultEstate.EstateID, m_DefaultEstate.EstatePass))
-                    {
-                        ;
-                    }
                 }
                 else
                 {
@@ -584,6 +580,7 @@ namespace Aurora.Modules.CityBuilder
                             m_log.InfoFormat("[CITY BUILDER]: Failed to construct region at {0},{1}", rx, ry);
                             return (false);
                         }
+                        EstateConnector.LinkRegion(regionInfo.RegionID, (int)m_DefaultEstate.EstateID, m_DefaultEstate.EstatePass);
                     }
                 }
             }
