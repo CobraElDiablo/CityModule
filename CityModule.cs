@@ -77,6 +77,20 @@ namespace Aurora.Modules.CityBuilder
     [Serializable]
     public class CityModule : IDataTransferable, IApplicationPlugin, ICityModule
     {
+        #region City Module Constants
+        public string[] companyNamePrefixes = new string[] { 
+            "i", "Green", "Mega", "Super", "Omni", "e", "Hyper", "Global", "Vital", "Next",
+            "Pacific", "Metro", "Unity", "G-", "Trans", "Infinity", "Superior", "Monolith",
+            "Best", "Atlantic", "First", "Union", "National", "Inter National"
+        };
+        public string[] companyNames = new string[] {
+            "Biotic", "Info", "Data", "Solar", "Aerospace", "Motors", "Nano", "Online", "Circuits",
+            "Energy", "Med", "Robotic", "Exports", "Security", "Systems", "Industrial", "Media",
+            "Materials", "Foods", "Networks", "Shipping", "Tools", "Medical", "Publishing",
+            "Enterprise", "Audio", "Health", "Bank", "Imports", "Apparel", "Petroleum", "Studios" };
+        public string[] companyNameSuffixs = new string[] {
+            "Corp", "Inc", ".com", "USA", "Ltd", "Net", "Tech", "Labs", "Mfg", "UK", "Unlimited", "One", "LLC" };
+        #endregion
         /// <summary>
         /// This section of the module deals with the properties that are specific to the city or to the
         /// module itself. Some of the parameters are changeable via the set/get city commands on the console.
