@@ -575,12 +575,12 @@ namespace Aurora.Modules.CityBuilder
                         regionInfo.RegionLocY = (int)(m_DefaultStartLocation.Y + ry);
                         m_log.InfoFormat("[CITY BUILDER]: '{0}' @ {1},{2}, http://{3}/", regionInfo.RegionName,
                             regionInfo.RegionLocX, regionInfo.RegionLocY, regionInfo.InternalEndPoint);
+                        EstateConnector.LinkRegion(regionInfo.RegionID, (int)m_DefaultEstate.EstateID, m_DefaultEstate.EstatePass);
                         if (!createRegion(rx, ry, regionInfo))
                         {
                             m_log.InfoFormat("[CITY BUILDER]: Failed to construct region at {0},{1}", rx, ry);
                             return (false);
                         }
-                        EstateConnector.LinkRegion(regionInfo.RegionID, (int)m_DefaultEstate.EstateID, m_DefaultEstate.EstatePass);
                     }
                 }
             }
@@ -616,6 +616,9 @@ namespace Aurora.Modules.CityBuilder
                     }
                 }
             }
+
+            //  Rivers and other waterways.
+
             //  From the total number of regions pick a number of regions that will be 'centers'
             // for the entire city, record these in the centralRegions list.
             m_log.Info("[CITY BUILDER]: [CENTERS]");
@@ -667,6 +670,9 @@ namespace Aurora.Modules.CityBuilder
             avgDensity += cityDensities[3];
             avgDensity /= 4;
 
+            //  Before ANYTHING else is created construct the transport systems, priority is given
+            // to the road network before the rail network, perhaps a configuration option to allow
+            // for the prioritisation value of the transport system is possible.
             m_log.Info("[CITY BUILDER]: [FREEWAYS]");
             m_log.Info("[CITY BUILDER]: [HIGHWAYS]");
             m_log.Info("[CITY BUILDER]: [STREETS]");
