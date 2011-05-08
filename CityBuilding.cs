@@ -285,13 +285,80 @@ namespace Aurora.Modules.CityBuilder
     /// <summary>
     /// A plot of land upon which a building stands.
     /// </summary>
-    public class BuildingPlot
+    [Serializable]
+    public class BuildingPlot : IDataTransferable
     {
-        public int xpos;
-        public int ypos;
-        public byte width;
-        public byte depth;
-        public PlotClaimType plotFlags; // PlotClaimType.XXXXX
+        #region Private Properties
+        private int xpos;
+        private int ypos;
+        private int width;
+        private int depth;
+        private PlotClaimType plotFlags; // PlotClaimType.XXXXX
+        #endregion
+        #region Public Properties
+        public int XPos
+        {
+            get { return (xpos); }
+            set { xpos = value; }
+        }
+        public int YPos
+        {
+            get { return (ypos); }
+            set { ypos = value; }
+        }
+        public int Width
+        {
+            get { return (width); }
+            set { width = value; }
+        }
+        public int Depth
+        {
+            get { return (depth); }
+            set { depth = value; }
+        }
+        public PlotClaimType PlotClaimType
+        {
+            get { return (plotFlags); }
+            set { plotFlags = value; }
+        }
+        #endregion
+        #region IDataTransferable Interface
+        public override IDataTransferable Duplicate()
+        {
+            BuildingPlot plot = new BuildingPlot();
+            plot.Duplicate();
+            return (IDataTransferable)plot;
+        }
+        public override void FromKVP(Dictionary<string, object> KVP)
+        {
+            base.FromKVP(KVP);
+        }
+        public override Dictionary<string, object> ToKeyValuePairs()
+        {
+            return base.ToKeyValuePairs();
+        }
+        public override void FromOSD(OSDMap map)
+        {
+            XPos = map["XPos"].AsInteger();
+            YPos = map["YPos"].AsInteger();
+            Width = map["Width"].AsInteger();
+            Depth = map["Depth"].AsInteger();
+            PlotClaimType = (PlotClaimType)map["ClaimType"].AsUInteger();
+            base.FromOSD(map);
+        }
+        public override OSDMap ToOSD()
+        {
+            OSDMap map = new OSDMap();
+
+            map.Add("XPos", XPos);
+            map.Add("YPos", YPos);
+            map.Add("Width", Width);
+            map.Add("Depth", Depth);
+            map.Add("ClaimType", (byte)PlotClaimType);
+            return map;
+        }
+        #endregion
+
     };
 
     /// <summary>
@@ -307,7 +374,7 @@ namespace Aurora.Modules.CityBuilder
     /// server, not too mention the fact that it could be somewhat irritating.
     /// </summary>
     [Serializable]
-    public class CityBuilding : /*IDataTransferable,*/ SceneObjectGroup
+    public class CityBuilding : SceneObjectGroup
     {
         #region Internal Members
         //  Data properties for this instance of a building.
@@ -461,7 +528,7 @@ namespace Aurora.Modules.CityBuilder
 
         #endregion
 
-        #region IDataTransferable Method
+        #region IDataTransferable Methods
         #endregion
 
         #region Public Methods
@@ -493,7 +560,7 @@ namespace Aurora.Modules.CityBuilder
         /// <param name="height">The height in floors of the building, not each floor is approximately 3 meters in size
         /// and thus buildings are limited to a maximum height of 100 floors.</param>
         public CityBuilding( BuildingType type, BuildingPlot plot, BuildingFlags flags, 
-            UUID owner, IScene scene, string name ):base(owner,new Vector3(plot.xpos,21,plot.ypos),
+            UUID owner, IScene scene, string name ):base(owner,new Vector3(plot.XPos,21,plot.YPos),
             Quaternion.Identity, PrimitiveBaseShape.CreateBox(), name, scene)
         {
             //  Start the process of constructing a building given the parameters specified. For
@@ -514,7 +581,7 @@ namespace Aurora.Modules.CityBuilder
             buildingUUID = UUID.Random();
             buildingGUID = UUID.Random();
 
-            buildingCenter = new Vector3((plot.xpos + plot.width / 2), 21, (plot.ypos + plot.depth) / 2);
+            buildingCenter = new Vector3((plot.XPos + plot.Width / 2), 21, (plot.YPos + plot.Depth) / 2);
             if (name.Length > 0)
                 buildingName = name;
             else

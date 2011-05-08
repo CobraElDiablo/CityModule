@@ -69,13 +69,13 @@
   <ItemGroup>
     <Compile Include="CityBuilding.cs" />
     <Compile Include="CityEntity.cs" />
-    <Compile Include="CityEntityManager.cs" />
-    <Compile Include="CityManager.cs" />
+    <Compile Include="Framework\CityEntityManager.cs" />
+    <Compile Include="Framework\CityManager.cs" />
     <Compile Include="CityModule.cs" />
     <Compile Include="CityMap.cs" />
     <Compile Include="CityTexture.cs" />
     <Compile Include="GeoSpatialData\GeoSpatialData.cs" />
-    <Compile Include="ICityModule.cs" />
+    <Compile Include="Framework\Interfaces\ICityModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -92,6 +92,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Toolkit\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

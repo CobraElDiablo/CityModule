@@ -64,6 +64,8 @@ namespace Aurora.Modules.CityBuilder
         private UUID estateIdent = UUID.Zero;
         private UUID cityMapOwner = UUID.Zero;
 
+        //  Provide the framework properties and methods that allow the use of the GeoSpatial datatypes.
+
         #endregion
 
         #region Public Members
@@ -139,11 +141,11 @@ namespace Aurora.Modules.CityBuilder
         public BuildingPlot MakePlot(int x, int y, int w, int d, PlotClaimType flags)
         {
             BuildingPlot plot = new BuildingPlot();
-            plot.xpos = x;
-            plot.ypos = y;
-            plot.width = (byte)w;
-            plot.depth = (byte)d;
-            plot.plotFlags = flags;
+            plot.XPos = x;
+            plot.YPos = y;
+            plot.Width = w;
+            plot.Depth = d;
+            plot.PlotClaimType = flags;
             return (plot);
         }
         /// <summary>
@@ -165,7 +167,7 @@ namespace Aurora.Modules.CityBuilder
             {
                 if (p.Equals(MakePlot(x, y, w, d,PlotClaimType.CLAIM_BUILDING|PlotClaimType.CLAIM_COMPLEX)))
                 {
-                    type = p.plotFlags;
+                    type = p.PlotClaimType;
                     return (idx);
                 }
                 idx++;
@@ -186,13 +188,13 @@ namespace Aurora.Modules.CityBuilder
             // network etc.
             foreach (BuildingPlot p in cityPlots)
             {
-                if (plot.xpos >= p.xpos && plot.ypos >= p.ypos &&
-                    (plot.xpos + plot.width <= p.xpos + p.width) &&
-                    (plot.ypos + plot.depth <= p.ypos + p.depth))
+                if (plot.XPos >= p.XPos && plot.YPos >= p.YPos &&
+                    (plot.XPos + plot.Width <= p.XPos + p.Width) &&
+                    (plot.YPos + plot.Depth <= p.YPos + p.Depth))
                 {
                     //  Plot specified is in this plots area. Determine if it has been
                     // claimed for anything other than part of a complex.
-                    if (p.plotFlags == PlotClaimType.CLAIM_NONE)
+                    if (p.PlotClaimType == PlotClaimType.CLAIM_NONE)
                         return (false);
                 }
             }
@@ -225,8 +227,8 @@ namespace Aurora.Modules.CityBuilder
                 {
                     if (p.Equals(plot))
                     {
-                        if (p.plotFlags == PlotClaimType.CLAIM_NONE)
-                            p.plotFlags = PlotClaimType.CLAIM_PARK;
+                        if (p.PlotClaimType == PlotClaimType.CLAIM_NONE)
+                            p.PlotClaimType = PlotClaimType.CLAIM_PARK;
                         return (true);
                     }
                 }

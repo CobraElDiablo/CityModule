@@ -31,8 +31,11 @@ using Aurora.Framework;
 
 using OpenSim;
 using OpenSim.Data;
+using OpenSim.Framework;
+using OpenSim.Framework.Serialization;
 using OpenSim.Region;
 using OpenSim.Region.CoreModules;
+using OpenSim.Region.CoreModules.World.Warp3DMap;
 using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
@@ -41,7 +44,6 @@ using OpenSim.Services.Interfaces;
 // but now has revereted to not recognising the namespace despite having added
 // the dll as a reference and the project itself as a dependancy of City Builder.
 //using Aurora.CoreApplicationPlugins;
-using OpenSim.Framework;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 
 //  Add support for new namespace that deals with geospatial data types and processing
@@ -50,6 +52,14 @@ using Aurora.Modules.CityBuilder.GeoSpatial.DataTypes;
 
 namespace Aurora.Modules.CityBuilder
 {
+    public enum DataSetType : int
+    {
+        DATASET_TYPE_NULL = -1,
+        DATASET_TYPE_NATIVE,
+        DATASET_TYPE_GEOSPATIAL,
+        DATASET_TYPE_GTAIVPC,
+        DATASET_TYPE_COUNT
+    };
 
     public enum GenerationStage : int
     {
@@ -100,20 +110,20 @@ namespace Aurora.Modules.CityBuilder
         private UserAccount m_DefaultUserAccount = null;
         private string m_DefaultUserName = string.Empty;
         private string m_DefaultUserEmail = string.Empty;
+        [XmlIgnore]
         private string m_DefaultUserPword = string.Empty;
         [XmlIgnore]
         private EstateSettings m_DefaultEstate = null;
         private string m_DefaultEstateName = string.Empty;
         private string m_DefaultEstateOwner = string.Empty;
+        [XmlIgnore]
         private string m_DefaultEstatePassword = string.Empty;
         [XmlIgnore]
         private IUserAccountService m_UserAccountService = null;
         [XmlIgnore]
         private IEstateConnector EstateConnector = null;
         private LandData cityLandData = new LandData();
-
         private static bool m_fGridMode = false;
-
         //  The start port number for any generated regions, this will increment for every
         // region that the plugin produces.
         private int startPort = 9500;
@@ -251,6 +261,10 @@ namespace Aurora.Modules.CityBuilder
                 "Displays a list of all cities present on disk or database.",
                 cmdList);
 
+            OpenSim.Framework.MainConsole.Instance.Commands.AddCommand(
+                "city", true, "city builder", "", "Opens a GUI editor for city generation parameter tweaking.",
+                cmdCityBuilder);
+
             m_fInitialised = true;
         }
 
@@ -279,16 +293,30 @@ namespace Aurora.Modules.CityBuilder
         /// <param name="filePath"></param>
         /// <param name="GTAIV"></param>
         /// <returns></returns>
-        private bool doExport(string filePath, bool GTAIV)
+        private bool doExport(string filePath, DataSetType data_type )
         {
             //  Initial stage for the export/import functionality is the ability to export/import
             // the data correctly for the current city, uses OSDMap. For now the GTAIV flag is 
             // ignored, this needs to be changed to allow for internal, GTA and GIS data sets to 
             // be used for cities.
-            if (filePath == null)
+            if (filePath == null || data_type == DataSetType.DATASET_TYPE_NULL)
             {
                 return (false);
             }
+
+            //  Make sure the file is not present on the destination.
+            // ???
+
+            // First stage use a TarArchiveWriter in conjunction with OSDMap to write a file
+            // containing all the information needed about the city and regions to be able to
+            // import it in when the server is shutdown and restarted.
+            System.IO.MemoryStream data = new System.IO.MemoryStream(1024);
+            TarArchiveWriter tarArchive = null;
+
+            //  Construct the archive before writing it to the destination.
+            tarArchive = new TarArchiveWriter(data);
+            tarArchive.WriteDir("citybuilder/");
+            tarArchive.WriteFile(filePath, data.GetBuffer());
 
             return (false);
         }
@@ -373,11 +401,11 @@ namespace Aurora.Modules.CityBuilder
             BuildingFlags flags = BuildingFlags.BUILDING_FLAG_ACOND | BuildingFlags.BUILDING_FLAG_LIGHTS |
                 BuildingFlags.BUILDING_FLAG_LOGO | BuildingFlags.BUILDING_FLAG_TRIM;
             BuildingPlot plot = new BuildingPlot();
-            plot.xpos = randomValue(256) / 4;
-            plot.ypos = randomValue(256) / 4;
-            plot.width = (byte)randomValue(10);
-            plot.depth = (byte)randomValue(10);
-            plot.plotFlags = PlotClaimType.CLAIM_BUILDING | PlotClaimType.CLAIM_COMPLEX;
+            plot.XPos = randomValue(256) / 4;
+            plot.YPos = randomValue(256) / 4;
+            plot.Width = (byte)randomValue(10);
+            plot.Depth = (byte)randomValue(10);
+            plot.PlotClaimType = PlotClaimType.CLAIM_BUILDING | PlotClaimType.CLAIM_COMPLEX;
 
             building = new CityBuilding(type, plot, flags, UUID.Zero,cityMap.centralRegions[0],"Building");
         }
@@ -538,6 +566,7 @@ namespace Aurora.Modules.CityBuilder
                 return (false);
             }
 
+            //  Fill in land data for the estate/owner.
             cityLandData.OwnerID = m_DefaultUserAccount.PrincipalID;
             cityLandData.Name = m_DefaultEstateName;
             cityLandData.GlobalID = UUID.Random();
@@ -564,6 +593,7 @@ namespace Aurora.Modules.CityBuilder
                 regionInfo.RegionName = "Region00";
                 regionInfo.RegionLocX = (int)m_DefaultStartLocation.X;
                 regionInfo.RegionLocY = (int)m_DefaultStartLocation.Y;
+                EstateConnector.LinkRegion(regionInfo.RegionID, (int)m_DefaultEstate.EstateID, m_DefaultEstate.EstatePass);
                 if (!createRegion(0, 0, regionInfo))
                 {
                     m_log.Info("[CITY BUILDER]: Failed to construct region.");
@@ -609,7 +639,11 @@ namespace Aurora.Modules.CityBuilder
             {
                 for (ry = 0; ry < 256; ry++)
                 {
-                    tHeight[rx, ry] = 21.0f;
+                    tHeight[rx, ry] = 21.0f * Perlin.turbulence3(rx,ry,21.0f,8.0f);
+                    if (tHeight[rx, ry] > 150.0f)
+                    {
+                        tHeight[rx, ry] /= 2.3f;
+                    }
                 }
             }
             //  Construct the new terrain for each region and pass the height map to it.
@@ -688,8 +722,14 @@ namespace Aurora.Modules.CityBuilder
             // to the road network before the rail network, perhaps a configuration option to allow
             // for the prioritisation value of the transport system is possible.
             m_log.Info("[CITY BUILDER]: [FREEWAYS]");
+
+            //  Construct a road system (high speed ~50-70 mph) between and around the city center regions.
+
+
             m_log.Info("[CITY BUILDER]: [HIGHWAYS]");
+
             m_log.Info("[CITY BUILDER]: [STREETS]");
+
             m_log.Info("[CITY BUILDER]: [RAILWAYS]");
             
             m_log.InfoFormat("[CITY BUILDER]: [RESIDENTIAL DENSITY] {0}%", cityDensities[0] * 100);
@@ -735,6 +775,10 @@ namespace Aurora.Modules.CityBuilder
 
             //  Obtain the default user account service, do the same for the estate/parcel too.
             m_UserAccountService = simulationBase.ApplicationRegistry.RequestModuleInterface<IUserAccountService>();
+
+            //  Register the ICityModule interface with the simulation base.
+            simulationBase.ApplicationRegistry.RegisterModuleInterface<ICityModule>(this);
+            m_log.Info("[CITY BUILDER]: ICityModule interface registered with simulation base.");
 
             //  If we have a configuration source for City Builder then set the specified internal properties else default them.
             if (cityConfig != null)
@@ -872,6 +916,14 @@ namespace Aurora.Modules.CityBuilder
             {
                 Vector2 size = new Vector2((float)cityMap.cityRegions.GetUpperBound(0), (float)cityMap.cityRegions.GetUpperBound(1));
                 return size;
+            }
+        }
+
+        public IConfigSource ConfigSource
+        {
+            get
+            {
+                return configSource;
             }
         }
 
@@ -1123,6 +1175,11 @@ namespace Aurora.Modules.CityBuilder
 
         public void cmdList(string module, string[] cmdParams)
         {
+        }
+
+        public void cmdCityBuilder(string module, string[] cmdParams)
+        {
+            m_log.Info("[CITY BUILDER]: Opening GUI editor.");
         }
 
         #endregion

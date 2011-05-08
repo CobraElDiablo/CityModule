@@ -1,6 +1,9 @@
 ﻿using OpenMetaverse;
 using OpenSim.Region.Framework.Scenes;
 
+using Nini;
+using Nini.Config;
+
 namespace Aurora.Framework
 {
     /// <summary>
@@ -17,6 +20,10 @@ namespace Aurora.Framework
             get;
         }
         Vector2 CitySize
+        {
+            get;
+        }
+        IConfigSource ConfigSource
         {
             get;
         }
