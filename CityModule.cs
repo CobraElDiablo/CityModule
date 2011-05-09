@@ -279,7 +279,11 @@ namespace Aurora.Modules.CityBuilder
 
             m_fInitialised = true;
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="range"></param>
+        /// <returns></returns>
         public static int randomValue(int range)
         {
             Random rnd = new Random();
@@ -287,19 +291,24 @@ namespace Aurora.Modules.CityBuilder
             r = rnd.Next(range);
             return r;
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
         private void doBackup()
         {
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
         private void doRestore()
         {
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
         private void doList()
         {
         }
-
         /// <summary>
         /// 
         /// </summary>
@@ -668,21 +677,59 @@ namespace Aurora.Modules.CityBuilder
             //  Either generate the terrain or loading from an existing file, DEM for example.
             m_log.Info("[CITY BUILDER]: [TERRAIN]");
 
-            //  For each region, just fill the terrain to be 21. This is just above the default
-            // water level for Aurora.
-            float[,] tHeight = new float[256, 256];
-            for (rx = 0; rx < 256; rx++)
+            //  Construct the new terrain for each region and pass the height map to it.
+            //  For the entire area covered by all of the regions construct a new terrain heightfield for it.
+            // Also construct several maps that can be blended together in order to provide a suitablly natural
+            // looking terrain which is not too flat or doesn't entirely consist of mountains.
+            float[,] terrainMap;
+            float[,] hMap1;
+            float[,] hMap2;
+            float[,] hMap3;
+            float[,] hMap4;
+            float[] bFactors = new float[4];
+            int size = regionInfo.RegionSizeX;
+//            r * cityConfig.GetInt("DefaultRegionSize");
+            int y;
+            int x;
+
+            terrainMap = new float[ size * r, size * r ];
+            hMap1 = new float[ size * r, size * r ];
+            hMap2 = new float[ size * r, size * r ];
+            hMap3 = new float[ size * r, size * r ];
+            hMap4 = new float[ size * r, size * r ];
+
+            for (x = 0; x < size; x++)
             {
-                for (ry = 0; ry < 256; ry++)
+                for (y = 0; y < size; y++)
                 {
-                    tHeight[rx, ry] = 21.0f * Perlin.turbulence3(rx,ry,21.0f,8.0f);
-                    if (tHeight[rx, ry] > 150.0f)
-                    {
-                        tHeight[rx, ry] /= 2.3f;
-                    }
+                    hMap1[x, y] = Perlin.noise2((float)x, (float)y);
+                    hMap2[x, y] = Perlin.noise2((float)x, (float)y);
+                    hMap3[x, y] = Perlin.noise2((float)x, (float)y);
+                    hMap4[x, y] = Perlin.noise2((float)x, (float)y);
                 }
             }
-            //  Construct the new terrain for each region and pass the height map to it.
+
+            m_log.Info("[CITY BUILDER]: Terrain built, blending.");
+
+            //  Set blending factors.
+            bFactors[0] = 0.75f;
+            bFactors[1] = 0.55f;
+            bFactors[2] = 0.35f;
+            bFactors[3] = 0.05f;
+
+            //  Blend the maps together.
+            for (x = 0; x < size; x++)
+            {
+                for (y = 0; y < size; y++)
+                {
+                    terrainMap[x, y] = (hMap1[x, y] * bFactors[0]) + (hMap2[x, y] * bFactors[1]) +
+                        (hMap3[x, y] * bFactors[2]) + (hMap4[x, y] * bFactors[3]);
+                }
+            }
+
+            m_log.Info("[CITY BUILDER]: Blended, applying.");
+
+            //  Set the height map of each region based on the newly created terrainMap.
             for (rx = 0; rx < r; rx++)
             {
                 for (ry = 0; ry < r; ry++)
@@ -690,10 +737,23 @@ namespace Aurora.Modules.CityBuilder
                     Scene region = cityMap.cityRegions[rx, ry];
                     ITerrainChannel tChannel = new TerrainChannel(true, region);
                     ITerrain terrain = null;
+
+                    m_log.InfoFormat("[CITY BUILDER]: Region [ {0}, {1} ]", rx, ry);
+
                     try
                     {
                         region.TryRequestModuleInterface<ITerrain>(out terrain);
-                        terrain.SetHeights2D(tHeight);
+                        float[,] tile = new float[ size, size ];
+                        for (int i = 0; i < size; i++)
+                        {
+                            for (int j = 0; i < size; j++)
+                            {
+                                tile[i, j] = terrainMap[(rx * size) + i, (ry * size) + j];
+                            }
+                        }
+
+                        if (terrain != null)
+                            terrain.SetHeights2D(tile);
                     }
                     catch
                     {
@@ -701,7 +761,10 @@ namespace Aurora.Modules.CityBuilder
                 }
             }
 
-            //  Rivers and other waterways.
+            //  Rivers and other waterways. Randomly select a number of rivers for the entire area
+            // and place them.
+            int rCount = CityModule.randomValue(size / r);
+            m_log.InfoFormat("[CITY BUILDER]: River count for entire area {0}", rCount);
 
             //  From the total number of regions pick a number of regions that will be 'centers'
             // for the entire city, record these in the centralRegions list.
