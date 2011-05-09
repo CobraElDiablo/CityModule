@@ -52,6 +52,13 @@ using Aurora.Modules.CityBuilder.GeoSpatial.DataTypes;
 
 namespace Aurora.Modules.CityBuilder
 {
+    /// <summary>
+    /// Defines the data set that is being currently used by City Builder. Valid datasets
+    /// include a native format (currently in tar archives, but soon to be changed to use
+    /// MySQL for the extra geospatial support). A GIS data format that allowd for direct
+    /// use of standardised data for spaces, and a data format suitable for the import of
+    /// game files from GTA IV.
+    /// </summary>
     public enum DataSetType : int
     {
         DATASET_TYPE_NULL = -1,
@@ -61,6 +68,10 @@ namespace Aurora.Modules.CityBuilder
         DATASET_TYPE_COUNT
     };
 
+    /// <summary>
+    /// The process of generating an enitre city scape from the terrain to the final finishes touches
+    /// takes on many steps and are presented below.
+    /// </summary>
     public enum GenerationStage : int
     {
         GENSTAGE_PRESTAGE = -1,
@@ -106,6 +117,7 @@ namespace Aurora.Modules.CityBuilder
         /// module itself. Some of the parameters are changeable via the set/get city commands on the console.
         /// </summary>
         #region Internal Members
+        private GenerationStage m_CurrentStage = GenerationStage.GENSTAGE_PRESTAGE;
         [XmlIgnore]
         private UserAccount m_DefaultUserAccount = null;
         private string m_DefaultUserName = string.Empty;
@@ -166,8 +178,8 @@ namespace Aurora.Modules.CityBuilder
         // Densities for various parts of the city, residential, commercial, industrial etc.
         private List<float> cityDensities = new List<float>();
         private Vector2 m_DefaultStartLocation = new Vector2(9500, 9500);
-        private Random rnd = new Random();
 
+        private List<System.Threading.Thread> m_ThreadPool = new List<System.Threading.Thread>();
         #endregion
         /// <summary>
         /// Internal methods private to the City Module.
@@ -268,8 +280,9 @@ namespace Aurora.Modules.CityBuilder
             m_fInitialised = true;
         }
 
-        public int randomValue(int range)
+        public static int randomValue(int range)
         {
+            Random rnd = new Random();
             int r = 0;
             r = rnd.Next(range);
             return r;
@@ -326,7 +339,7 @@ namespace Aurora.Modules.CityBuilder
         /// <param name="filePath"></param>
         /// <param name="GTAIV"></param>
         /// <returns></returns>
-        private bool doImport(string filePath, bool GTAIV)
+        private bool doImport(string filePath, DataSetType data_type )
         {
             //  Import the file from the specified file path. For now the GTAIV flag is
             // ignored.
@@ -486,7 +499,7 @@ namespace Aurora.Modules.CityBuilder
             }
 
             //  Decide where the city is to be placed within the server instance.
-            int r = this.randomValue(10);
+            int r = CityModule.randomValue(10);
 
             string regionCount = MainConsole.Instance.CmdPrompt("Region Count ", r.ToString());
             r = Convert.ToInt32(regionCount);
@@ -546,7 +559,7 @@ namespace Aurora.Modules.CityBuilder
                     m_DefaultEstate.EstateOwner = m_DefaultUserAccount.PrincipalID;
                     m_DefaultEstate.EstateName = m_DefaultEstateName;
                     m_DefaultEstate.EstatePass = Util.Md5Hash(Util.Md5Hash(m_DefaultEstatePassword));
-                    m_DefaultEstate.EstateID = (uint)this.randomValue(1000);
+                    m_DefaultEstate.EstateID = (uint)CityModule.randomValue(1000);
 
                     regionInfo.EstateSettings = EstateConnector.CreateEstate(m_DefaultEstate, regionInfo.RegionID);
                 }
@@ -562,7 +575,7 @@ namespace Aurora.Modules.CityBuilder
             }
             else
             {
-                m_log.Info("[CITY BUILDER]: No estate connection with server found.");
+                m_log.Info("[CITY BUILDER]: No connection with server.");
                 return (false);
             }
 
@@ -603,10 +616,28 @@ namespace Aurora.Modules.CityBuilder
             else if (r > 1)
             {
                 m_log.Info("[CITY BUILDER]: Multi-region city.");
+                m_log.Info("[CITY BUILDER]: Finding external IP, please wait ... ");
                 regionInfo.ExternalHostName = Aurora.Framework.Utilities.GetExternalIp();
-                regionInfo.FindExternalAutomatically = true;
+                if (regionInfo.ExternalHostName.Length <= 0)
+                {
+                    regionInfo.FindExternalAutomatically = false;
+                }
+                else
+                {
+                    m_log.InfoFormat("[CITY BUILDER]: External IP address is {0}", regionInfo.ExternalHostName);
+                    regionInfo.FindExternalAutomatically = true;
+                }
                 //  Construct the regions for the city.
                 regionPort = startPort;
+                INeighborService neighbours = simulationBase.ApplicationRegistry.RequestModuleInterface<INeighborService>();
+                if (neighbours == null)
+                {
+                    m_log.Info("[CITY BUILDER]: No neighbours.");
+                }
+                else
+                {
+                    m_log.Info("[CITY BUILDER]: Neighbours service found.");
+                }
                 for (rx = 0; rx < r; rx++)
                 {
                     for (ry = 0; ry < r; ry++)
@@ -624,6 +655,11 @@ namespace Aurora.Modules.CityBuilder
                         {
                             m_log.InfoFormat("[CITY BUILDER]: Failed to construct region at {0},{1}", rx, ry);
                             return (false);
+                        }
+                        if (neighbours != null)
+                        {
+                            m_log.Info("[CITY BUILDER]: Informing neighbours.");
+                            neighbours.InformOurRegionsOfNewNeighbor(regionInfo);
                         }
                     }
                 }
@@ -671,7 +707,7 @@ namespace Aurora.Modules.CityBuilder
             // for the entire city, record these in the centralRegions list.
             m_log.Info("[CITY BUILDER]: [CENTERS]");
             //  ( region count * region count ) / 3
-            int aNum = this.randomValue((cityMap.cityRegions.GetUpperBound(0) * cityMap.cityRegions.GetUpperBound(1))/3);
+            int aNum = CityModule.randomValue((cityMap.cityRegions.GetUpperBound(0) * cityMap.cityRegions.GetUpperBound(1))/3);
             if (aNum == 0)
             {
                 aNum = 1;
@@ -746,6 +782,12 @@ namespace Aurora.Modules.CityBuilder
         }
 
         #endregion
+        #region Public Properties
+        public GenerationStage GenerationStage
+        {
+            get { return (m_CurrentStage); }
+        }
+        #endregion
         /// <summary>
         /// This section deals with the inherited interface IApplicationPlugin, note some methods
         /// are duplicates of ones in the ISharedRegionModule interface region.
@@ -797,7 +839,7 @@ namespace Aurora.Modules.CityBuilder
                 m_fEnabled = cityConfig.GetBoolean("Enabled", m_fEnabled);
 
                 m_fInitialised = false;
-                citySeed = this.randomValue(257);
+                citySeed = CityModule.randomValue(257);
                 cityName = cityConfig.GetString("DefaultCityName", "CityVille");
                 cityOwner = cityConfig.GetString("DefaultCityOwner", "Cobra ElDiablo");
                 m_DefaultUserName = cityOwner;
@@ -819,7 +861,7 @@ namespace Aurora.Modules.CityBuilder
                 
                 m_fEnabled = false;
                 m_fInitialised = false;
-                citySeed = this.randomValue(257);
+                citySeed = CityModule.randomValue(257);
                 cityName = string.Empty;
                 cityOwner = string.Empty;
                 CityEstate = string.Empty;
@@ -1092,14 +1134,7 @@ namespace Aurora.Modules.CityBuilder
         /// <param name="cmdParams"></param>
         public void cmdGenerate(string module, string[] cmdParams)
         {
-//            if (cmdParams.Length != 6 || cmdParams.Length != 7)
-//            {
-//                m_log.InfoFormat("[CITY BUILDER] : Bad parameters supplied to city generate. {0}",cmdParams.Length);
-//                m_log.Info("[CITY BUILDER] : city generate <region> <seed> <city name> <city owner> <all/single>");
-//                return;
-//            }
-
-            doGenerate(this.randomValue(32767));
+            doGenerate(CityModule.randomValue(32767));
         }
         /// <summary>
         /// Handles one of the builtin commands on the main server's command console, this command
@@ -1157,10 +1192,8 @@ namespace Aurora.Modules.CityBuilder
         public void cmdBuilding(string module, string[] cmdParams)
         {
             m_log.Info("[CITY BUILDER] : Buildings commands.");
-
             string name = MainConsole.Instance.CmdPrompt("Building name ", "Building");
             string owner = MainConsole.Instance.CmdPrompt("Owner", cityOwner);
-
             doBuilding();
 
         }
@@ -1175,6 +1208,8 @@ namespace Aurora.Modules.CityBuilder
 
         public void cmdList(string module, string[] cmdParams)
         {
+            // provide a list of buildings, plots, regions, estates, owners etc etc based
+            // on the parameters supplied at the command console prompt.
         }
 
         public void cmdCityBuilder(string module, string[] cmdParams)
