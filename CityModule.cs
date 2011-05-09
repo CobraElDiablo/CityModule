@@ -604,6 +604,8 @@ namespace Aurora.Modules.CityBuilder
             regionInfo.Startup = StartupType.Normal;
             regionInfo.ScopeID = UUID.Zero;
 
+            IParcelServiceConnector parcelService = simulationBase.ApplicationRegistry.RequestModuleInterface<IParcelServiceConnector>();
+
             if (r == 1)
             {
                 m_log.Info("[CITY BUILDER]: Single region city.");
@@ -615,7 +617,9 @@ namespace Aurora.Modules.CityBuilder
                 regionInfo.RegionName = "Region00";
                 regionInfo.RegionLocX = (int)m_DefaultStartLocation.X;
                 regionInfo.RegionLocY = (int)m_DefaultStartLocation.Y;
-                EstateConnector.LinkRegion(regionInfo.RegionID, (int)m_DefaultEstate.EstateID, m_DefaultEstate.EstatePass);
+                if (parcelService != null)
+                    parcelService.StoreLandObject(cityLandData);
+//                EstateConnector.LinkRegion(regionInfo.RegionID, (int)m_DefaultEstate.EstateID, m_DefaultEstate.EstatePass);
                 if (!createRegion(0, 0, regionInfo))
                 {
                     m_log.Info("[CITY BUILDER]: Failed to construct region.");
@@ -647,11 +651,12 @@ namespace Aurora.Modules.CityBuilder
                 {
                     m_log.Info("[CITY BUILDER]: Neighbours service found.");
                 }
+                IPAddress address = IPAddress.Parse("0.0.0.0");
+
                 for (rx = 0; rx < r; rx++)
                 {
                     for (ry = 0; ry < r; ry++)
                     {
-                        IPAddress address = IPAddress.Parse("0.0.0.0");
                         regionInfo.InternalEndPoint = new IPEndPoint(address, regionPort++);
                         cityLandData.RegionID = regionInfo.RegionID;
                         regionInfo.RegionName = "Region" + rx + ry;
@@ -659,7 +664,9 @@ namespace Aurora.Modules.CityBuilder
                         regionInfo.RegionLocY = (int)(m_DefaultStartLocation.Y + ry);
                         m_log.InfoFormat("[CITY BUILDER]: '{0}' @ {1},{2}, http://{3}/", regionInfo.RegionName,
                             regionInfo.RegionLocX, regionInfo.RegionLocY, regionInfo.InternalEndPoint);
-                        EstateConnector.LinkRegion(regionInfo.RegionID, (int)m_DefaultEstate.EstateID, m_DefaultEstate.EstatePass);
+                        if (parcelService != null)
+                            parcelService.StoreLandObject(cityLandData);
+//                        EstateConnector.LinkRegion(regionInfo.RegionID, (int)m_DefaultEstate.EstateID, m_DefaultEstate.EstatePass);
                         if (!createRegion(rx, ry, regionInfo))
                         {
                             m_log.InfoFormat("[CITY BUILDER]: Failed to construct region at {0},{1}", rx, ry);
