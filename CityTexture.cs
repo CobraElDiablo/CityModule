@@ -46,6 +46,10 @@ namespace Aurora.Modules.CityBuilder
     /// </summary>
     public class CityTexture : SceneObjectPart
     {
+        #region Texture Constants
+        const int DEFAULT_TEXTURE_SIZE = 512;
+        const int DEFAULT_CELL_SIZE = 16;
+        #endregion
         #region Internal Properties
         private UUID textureID;
         private UUID ownerID;
