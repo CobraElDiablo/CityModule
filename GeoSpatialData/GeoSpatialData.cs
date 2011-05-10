@@ -258,15 +258,20 @@ namespace Aurora.Modules.CityBuilder
 
             //  For each type of data set (dems, lcc, etc) provide a basic handler for them to
             // interface to the base types used by Aurora and City Builder.
-            public class GeoDEM : IGeoHandler
+            /* public class GeoDEM : IGeoHandler
             {
+                private uint[] dataArray = null;
                 private bool importDEM(System.IO.Stream dataStream, EventArgs e)
                 {
+                    if (dataStream == null || !dataStream.CanRead)
+                        return (false);
                     return (false);
                 }
 
                 private bool exportDEM(System.IO.Stream dataStream, EventArgs e)
                 {
+                    if (dataStream == null || !dataStream.CanWrite)
+                        return (false);
                     return (false);
                 }
 
@@ -316,7 +321,8 @@ namespace Aurora.Modules.CityBuilder
                     geoExporter = this.exportDEM;
                     geoProcessor = this.processDEM;
                 }
-            }
+
+            } */
         }
 
     }
