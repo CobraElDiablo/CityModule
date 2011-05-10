@@ -24,6 +24,7 @@ using Nini.Config;
 
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
+using OpenMetaverse.Imaging;
 
 using Aurora.Services.DataService;
 using Aurora.Simulation.Base;
@@ -699,7 +700,6 @@ namespace Aurora.Modules.CityBuilder
             float[,] hMap4;
             float[] bFactors = new float[4];
             int size = regionInfo.RegionSizeX;
-//            r * cityConfig.GetInt("DefaultRegionSize");
             int y;
             int x;
 
@@ -708,67 +708,67 @@ namespace Aurora.Modules.CityBuilder
             hMap2 = new float[ size * r, size * r ];
             hMap3 = new float[ size * r, size * r ];
             hMap4 = new float[ size * r, size * r ];
-
-            for (x = 0; x < size; x++)
-            {
-                for (y = 0; y < size; y++)
-                {
-                    hMap1[x, y] = Perlin.noise2((float)x, (float)y);
-                    hMap2[x, y] = Perlin.noise2((float)x, (float)y);
-                    hMap3[x, y] = Perlin.noise2((float)x, (float)y);
-                    hMap4[x, y] = Perlin.noise2((float)x, (float)y);
-                }
-            }
-
-            m_log.Info("[CITY BUILDER]: Terrain built, blending.");
-
             //  Set blending factors.
             bFactors[0] = 0.75f;
             bFactors[1] = 0.55f;
             bFactors[2] = 0.35f;
             bFactors[3] = 0.05f;
 
-            //  Blend the maps together.
+            //  Generate four layers for the initial height map and then blend them together.
             for (x = 0; x < size; x++)
             {
                 for (y = 0; y < size; y++)
                 {
-                    terrainMap[x, y] = (hMap1[x, y] * bFactors[0]) + (hMap2[x, y] * bFactors[1]) +
-                        (hMap3[x, y] * bFactors[2]) + (hMap4[x, y] * bFactors[3]);
+                    for (int i = 0; i < r; i++)
+                    {
+                        for (int j = 0; j < r; j++)
+                        {
+                            hMap1[i * x, i * y] = Perlin.noise2((float)x+i, (float)y+i);
+                            hMap2[i * x, i * y] = Perlin.noise2((float)x, (float)y+i);
+                            hMap3[i * x, i * y] = Perlin.noise2((float)x+i, (float)y);
+                            hMap4[i * x, i * y] = Perlin.noise2((float)x+j, (float)y+i);
+                            terrainMap[i*x, i*y] = (hMap1[i*x, i*y] * bFactors[0]) + (hMap2[i*x, i*y] * bFactors[1]) +
+                                (hMap3[i*x, i*y] * bFactors[2]) + (hMap4[i*x, i*y] * bFactors[3]);
+                        }
+                    }
                 }
             }
 
-            m_log.Info("[CITY BUILDER]: Blended, applying.");
+            //  DEBUG code that will save the resulting terrainMap as a jpeg image.
+            m_log.Info("[CITY BUILDER]: Debug, save terrain map (full) as a jpeg image.");
+            ManagedImage mImage = new ManagedImage(r * size, r * size, ManagedImage.ImageChannels.Bump);
+
+            //   Find a way of copying the terrainMap array into the newly created image, then save
+            // the image to disk.
+
+            m_log.Info("[CITY BUILDER]: Terrain built and blended, tiling and region application.");
 
             //  Set the height map of each region based on the newly created terrainMap.
+            ITerrain terrain = null;
             for (rx = 0; rx < r; rx++)
             {
                 for (ry = 0; ry < r; ry++)
                 {
                     Scene region = cityMap.cityRegions[rx, ry];
                     ITerrainChannel tChannel = new TerrainChannel(true, region);
-                    ITerrain terrain = null;
+                    region.TryRequestModuleInterface<ITerrain>(out terrain);
 
                     m_log.InfoFormat("[CITY BUILDER]: Region [ {0}, {1} ]", rx, ry);
 
-                    try
+                    float[,] tile = new float[ size, size ];
+                    for (int i = 0; i < size; i++)
                     {
-                        region.TryRequestModuleInterface<ITerrain>(out terrain);
-                        float[,] tile = new float[ size, size ];
-                        for (int i = 0; i < size; i++)
+                        for (int j = 0; i < size; j++)
                         {
-                            for (int j = 0; i < size; j++)
-                            {
-                                tile[i, j] = terrainMap[(rx * size) + i, (ry * size) + j];
-                            }
+                            tile[i, j] = terrainMap[(rx * size) + i, (ry * size) + j];
                         }
+                    }
 
-                        if (terrain != null)
-                            terrain.SetHeights2D(tile);
-                    }
-                    catch
-                    {
-                    }
+                    if (terrain != null & tile!=null)
+                        terrain.SetHeights2D(tile);
+
+                    // dispose of the tile now thats its not needed as a new tile is allocated next loop run.
+                    tile = null;
                 }
             }
 
