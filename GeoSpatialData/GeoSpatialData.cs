@@ -230,24 +230,92 @@ namespace Aurora.Modules.CityBuilder
 
         namespace DataHandlers
         {
+            // Define some 'delegates' or event handlers that are used by the abstraction layer
+            // to provide the abstraction layer regardless of what geospatial data set is in use.
+            public delegate bool GeoImporter( System.IO.Stream dataStream, EventArgs e );
+            public delegate bool GeoExporter( System.IO.Stream dataStream, EventArgs e );
+            public delegate void GeoProcessor( EventArgs e );
             //  Provides a way of having an abstraction layer to GeoHandlers, ie class instances
             // that deals GeoSpatial Data Types using a specific algorithmn.
             public interface IGeoHandler
             {
-                private System.IO.Stream m_GeoStream = null;
-                public System.IO.Stream GeoStream
+                GeoImporter Importer
                 {
-                    get { return (m_GeoStream); }
+                    get;
+                    set;
                 }
-                //  Override this to import.
-                bool importDataStream( System.IO.Stream dataStream) { return (false); }
-                //  Override this for export.
-                bool exportDataStream( System.IO.Stream dataStream) { return (false); }
-                //  Override this for the actual processing of data streams based on an array 
-                // of command codes or operations to perform on the data. This even maybe null
-                // for 'fixed-pipeline' operations ie conversion from one format to another,
-                // scaling or other transformation operation.
-                void executeHandler(byte[] cmdBytes) { }
+                GeoExporter Exporter
+                {
+                    get;
+                    set;
+                }
+                GeoProcessor Processor
+                {
+                    get;
+                    set;
+                }
+            }
+
+            //  For each type of data set (dems, lcc, etc) provide a basic handler for them to
+            // interface to the base types used by Aurora and City Builder.
+            public class GeoDEM : IGeoHandler
+            {
+                private bool importDEM(System.IO.Stream dataStream, EventArgs e)
+                {
+                    return (false);
+                }
+
+                private bool exportDEM(System.IO.Stream dataStream, EventArgs e)
+                {
+                    return (false);
+                }
+
+                private void processDEM(EventArgs e)
+                {
+                }
+
+                private GeoImporter geoImporter;
+                private GeoExporter geoExporter;
+                private GeoProcessor geoProcessor;
+
+                GeoImporter Importer
+                {
+                    get
+                    {
+                        return (geoImporter);
+                    }
+                    set
+                    {
+                        if (value != geoImporter)
+                            return;
+                    }
+                }
+                GeoExporter Exporter
+                {
+                    get { return (geoExporter); }
+                    set
+                    {
+                        if (value != geoExporter)
+                            return;
+                    }
+                }
+                GeoProcessor Processor
+                {
+                    get { return (geoProcessor); }
+                    set
+                    {
+                        if (value != geoProcessor)
+                            return;
+                    }
+                }
+
+                public GeoDEM()
+                {
+                    //  Set the importer, exporter and processor for the DEM data set.
+                    geoImporter = this.importDEM;
+                    geoExporter = this.exportDEM;
+                    geoProcessor = this.processDEM;
+                }
             }
         }
 
