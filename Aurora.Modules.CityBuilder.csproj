@@ -69,6 +69,7 @@
   <ItemGroup>
     <Compile Include="CityBuilding.cs" />
     <Compile Include="CityEntity.cs" />
+    <Compile Include="Framework\Interfaces\ICityBuilding.cs" />
     <Compile Include="Managers\CityEntityManager.cs" />
     <Compile Include="Managers\CityManager.cs" />
     <Compile Include="CityModule.cs" />
