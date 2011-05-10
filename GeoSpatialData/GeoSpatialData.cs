@@ -8,20 +8,21 @@ using Aurora.Framework;
 
 namespace Aurora.Modules.CityBuilder
 {
-    /// <summary>
-    /// Defines the type of land coverage an individual sample is, things like rock, sand, but also urban.
-    /// </summary>
-    public enum GeoLandCoverType : int
-    {
-        GEOCOVER_UNKNOWN = -1,
-        GEOCOVER_WATER,
-        GEOCOVER_COUNT
-    };
-
     //  GeoSpatial data sets.
     namespace GeoSpatial
     {
-        //  Base data types.
+        /// <summary>
+        /// Defines the type of land coverage an individual sample is, things like rock, sand, but also urban.
+        /// </summary>
+        public enum GeoLandCoverType : int
+        {
+            GEOCOVER_UNKNOWN = -1,
+            GEOCOVER_WATER,
+            GEOCOVER_COUNT
+        };
+        /// <summary>
+        ///  Base data types.
+        /// </summary>
         namespace DataTypes
         {
             /// <summary>
