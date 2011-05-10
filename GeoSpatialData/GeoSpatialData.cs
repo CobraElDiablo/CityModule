@@ -138,16 +138,24 @@ namespace Aurora.Modules.CityBuilder
             /// </summary>
             public class GeoPolygon : IDataTransferable
             {
-                private GeoPoint m_StartPoint;
-                private List<GeoPoint> m_Edges;
+                private GeoPoint m_StartPoint = new GeoPoint();
+                private List<GeoEdge> m_Edges = new List<GeoEdge>();
 
                 public GeoPoint StartPoint
                 {
-                    get { return (m_StartPoint); }
-                    set { m_StartPoint = value; }
+                    get
+                    {
+                        m_StartPoint = m_Edges[0].StartPoint;
+                        return (m_StartPoint);
+                    }
+                    set
+                    {
+                        m_StartPoint = value;
+                        m_Edges[0].StartPoint = value;
+                    }
                 }
 
-                public GeoPoint this[int index]
+                public GeoEdge this[int index]
                 {
                     get
                     {
@@ -159,16 +167,15 @@ namespace Aurora.Modules.CityBuilder
                     }
                     set
                     {
-                        if (m_Edges == null)
+                        if (index < 0 || index > m_Edges.Count)
                         {
-                            m_Edges = new List<GeoPoint>();
+                            return;
                         }
-                        if (m_Edges.Count == 0)
+                        if (index == 0)
                         {
-                            m_StartPoint = value;
+                            m_StartPoint = value.StartPoint;
                         }
-
-                        m_Edges.Add(value);
+                        m_Edges[index] = value;
                     }
                 }
 
@@ -185,8 +192,8 @@ namespace Aurora.Modules.CityBuilder
                         for (i = 0; i < m_Edges.Count; i++)
                         {
                             j = (i + 1) % m_Edges.Count;
-                            area += m_Edges[i].Point.X * m_Edges[i].Point.Y;
-                            area -= m_Edges[i].Point.Y * m_Edges[i].Point.X;
+                            area += m_Edges[i].StartPoint.Point.X * m_Edges[i].StartPoint.Point.Y;
+                            area -= m_Edges[i].StartPoint.Point.Y * m_Edges[i].StartPoint.Point.X;
                         }
                         area /= 2;
                         return (area < 0 ? -area : area);
@@ -216,12 +223,6 @@ namespace Aurora.Modules.CityBuilder
                 {
                     return base.ToOSD();
                 }
-//                public override bool Equals(object obj)
-//                {
-//                    if (obj == this)
-//                        return (true);
-//                    return base.Equals(obj);
-//                }
             }
 
         }
