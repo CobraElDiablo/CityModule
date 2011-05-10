@@ -4,7 +4,7 @@ README : CITY MODULE FOR AURORA (0.2Dev)
 	to generate a city, including waterways, roads, rail, and buildings over a single region or
 	to even create the regions as needed for import of pre generated cities, or even game cities.
 
-CURRENT:	0.0.0.21
+CURRENT:	0.0.0.23
 
 	Module load and is recognised by Aurora, simple command console interface framework.
 	Some internal functionality for response to commands (does not perform any actions,

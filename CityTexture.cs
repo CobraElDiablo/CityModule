@@ -51,10 +51,10 @@ namespace Aurora.Modules.CityBuilder
         const int DEFAULT_CELL_SIZE = 16;
         #endregion
         #region Internal Properties
-        private UUID textureID;
-        private UUID ownerID;
-        private Vector2 textureSize;
-        private string textureName;
+        private UUID textureID = UUID.Zero;
+        private UUID ownerID = UUID.Zero;
+        private Vector2 textureSize = new Vector2(DEFAULT_TEXTURE_SIZE,DEFAULT_TEXTURE_SIZE);
+        private string textureName = string.Empty;
         #endregion
         #region Internal Methods
         #endregion

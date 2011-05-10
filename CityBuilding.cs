@@ -383,7 +383,7 @@ namespace Aurora.Modules.CityBuilder
         private BuildingFlags   buildingFlags = BuildingFlags.BUILDING_FLAG_NONE;
         private Vector3         buildingCenter = Vector3.Zero;
         private BuildingPlot    buildingPlot = new BuildingPlot();
-        private int             buildingHeight = 0; // building height.
+        private int buildingHeight = CityModule.randomValue(10);  // building height.
         //  This is a list of the texture identities used by the entire building, format of the
         // list is not decided yet, ie front,back,left,right or left,right,front,back (repeat for all) :P
         private List<UUID>      buildingTextures = new List<UUID>();
@@ -395,12 +395,12 @@ namespace Aurora.Modules.CityBuilder
         //  Random seed allowing for the building to be auto generated programmatically based on
         // random(ish) values that during evaluation can be used to recreate an entire city scape
         // over multiple regions giving the same city every time.
-        private int             buildingSeed = 0;
+        private int buildingSeed = CityModule.randomValue(65355);
         private int             buildingRoofTiers = 1;
         private Vector4         buildingColour = Vector4.Zero;
         private Vector4         buidlingTrimColour = Vector4.Zero;
-        private UUID buildingGUID = UUID.Random();  //  Unique to either a group (complex) or single building.
-        private UUID buildingUUID = UUID.Random();  //  Unique for this building
+        private UUID buildingGUID = UUID.Zero;  //  Unique to either a group (complex) or single building.
+        private UUID buildingUUID = UUID.Zero;  //  Unique for this building
         private UUID buildingOwner = UUID.Zero; // Should this be the same as the SceneObjectGroup 'owner'?
         [XmlIgnore]
         private Scene scene = null; // Which scene or region this building belongs too, needed to primitive manipulation.

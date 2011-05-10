@@ -216,12 +216,12 @@ namespace Aurora.Modules.CityBuilder
                 {
                     return base.ToOSD();
                 }
-                public override bool Equals(object obj)
-                {
-                    if (obj == this)
-                        return (true);
-                    return base.Equals(obj);
-                }
+//                public override bool Equals(object obj)
+//                {
+//                    if (obj == this)
+//                        return (true);
+//                    return base.Equals(obj);
+//                }
             }
 
         }

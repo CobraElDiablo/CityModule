@@ -605,6 +605,10 @@ namespace Aurora.Modules.CityBuilder
             regionInfo.ScopeID = UUID.Zero;
 
             IParcelServiceConnector parcelService = simulationBase.ApplicationRegistry.RequestModuleInterface<IParcelServiceConnector>();
+            if (parcelService == null)
+            {
+                m_log.Info("[CITY BUILDER]: Unable to connect to servers parcel service.");
+            }
 
             if (r == 1)
             {
