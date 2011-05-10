@@ -228,5 +228,42 @@ namespace Aurora.Modules.CityBuilder
 
         }
 
+        namespace DataHandlers
+        {
+            public class baseGeoHandler
+            {
+                private byte[] dataArray;
+                public byte[] DataArray
+                {
+                    get { return (dataArray); }
+                }
+                public byte this[int index]
+                {
+                    get
+                    {
+                        if (index < 0 || index > dataArray.Length)
+                        {
+                            return (0);
+                        }
+                        return (dataArray[index]);
+                    }
+                    set
+                    {
+                        if (index < 0 || index > dataArray.Length)
+                        {
+                            return;
+                        }
+                        dataArray[index] = value;
+                    }
+                }
+
+                private System.IO.File geoFileHandle = null;
+                public System.IO.File FileHandle
+                {
+                    get { return (geoFileHandle); }
+                }
+            }
+        }
+
     }
 }
