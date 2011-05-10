@@ -230,38 +230,24 @@ namespace Aurora.Modules.CityBuilder
 
         namespace DataHandlers
         {
-            public class baseGeoHandler
+            //  Provides a way of having an abstraction layer to GeoHandlers, ie class instances
+            // that deals GeoSpatial Data Types using a specific algorithmn.
+            public interface IGeoHandler
             {
-                private byte[] dataArray;
-                public byte[] DataArray
+                private System.IO.Stream m_GeoStream = null;
+                public System.IO.Stream GeoStream
                 {
-                    get { return (dataArray); }
+                    get { return (m_GeoStream); }
                 }
-                public byte this[int index]
-                {
-                    get
-                    {
-                        if (index < 0 || index > dataArray.Length)
-                        {
-                            return (0);
-                        }
-                        return (dataArray[index]);
-                    }
-                    set
-                    {
-                        if (index < 0 || index > dataArray.Length)
-                        {
-                            return;
-                        }
-                        dataArray[index] = value;
-                    }
-                }
-
-                private System.IO.File geoFileHandle = null;
-                public System.IO.File FileHandle
-                {
-                    get { return (geoFileHandle); }
-                }
+                //  Override this to import.
+                bool importDataStream( System.IO.Stream dataStream) { return (false); }
+                //  Override this for export.
+                bool exportDataStream( System.IO.Stream dataStream) { return (false); }
+                //  Override this for the actual processing of data streams based on an array 
+                // of command codes or operations to perform on the data. This even maybe null
+                // for 'fixed-pipeline' operations ie conversion from one format to another,
+                // scaling or other transformation operation.
+                void executeHandler(byte[] cmdBytes) { }
             }
         }
 
