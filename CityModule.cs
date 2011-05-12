@@ -624,7 +624,6 @@ namespace Aurora.Modules.CityBuilder
                 regionInfo.RegionLocY = (int)m_DefaultStartLocation.Y;
                 if (parcelService != null)
                     parcelService.StoreLandObject(cityLandData);
-//                EstateConnector.LinkRegion(regionInfo.RegionID, (int)m_DefaultEstate.EstateID, m_DefaultEstate.EstatePass);
                 if (!createRegion(0, 0, regionInfo))
                 {
                     m_log.Info("[CITY BUILDER]: Failed to construct region.");
@@ -671,7 +670,6 @@ namespace Aurora.Modules.CityBuilder
                             regionInfo.RegionLocX, regionInfo.RegionLocY, regionInfo.InternalEndPoint);
                         if (parcelService != null)
                             parcelService.StoreLandObject(cityLandData);
-//                        EstateConnector.LinkRegion(regionInfo.RegionID, (int)m_DefaultEstate.EstateID, m_DefaultEstate.EstatePass);
                         if (!createRegion(rx, ry, regionInfo))
                         {
                             m_log.InfoFormat("[CITY BUILDER]: Failed to construct region at {0},{1}", rx, ry);
