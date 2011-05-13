@@ -374,9 +374,9 @@ namespace Aurora.Modules.CityBuilder
     /// server, not too mention the fact that it could be somewhat irritating.
     /// </summary>
     [Serializable]
-    public class CityBuilding : SceneObjectGroup
+    public class CityBuilding : ICityBuilding
     {
-        #region Internal Members
+/*        #region Internal Members
         //  Data properties for this instance of a building.
         private string          buildingName = string.Empty;
         private BuildingType    buildingType = BuildingType.BUILDING_GENERAL;
@@ -405,7 +405,7 @@ namespace Aurora.Modules.CityBuilder
         [XmlIgnore]
         private Scene scene = null; // Which scene or region this building belongs too, needed to primitive manipulation.
         #endregion
-
+*/
         #region Internal Methods
 
         /// <summary>
@@ -530,7 +530,7 @@ namespace Aurora.Modules.CityBuilder
 
         #region IDataTransferable Methods
         #endregion
-
+/*
         #region Public Methods
 
         public string BuildingName
@@ -540,12 +540,8 @@ namespace Aurora.Modules.CityBuilder
         }
 
         #endregion
-
+*/
         #region Constructors
-
-        public CityBuilding():base(null)
-        {
-        }
 
         /// <summary>
         /// Construct the building class instance from the given properties.
@@ -560,32 +556,31 @@ namespace Aurora.Modules.CityBuilder
         /// <param name="height">The height in floors of the building, not each floor is approximately 3 meters in size
         /// and thus buildings are limited to a maximum height of 100 floors.</param>
         public CityBuilding( BuildingType type, BuildingPlot plot, BuildingFlags flags, 
-            UUID owner, IScene scene, string name ):base(owner,new Vector3(plot.XPos,21,plot.YPos),
-            Quaternion.Identity, PrimitiveBaseShape.CreateBox(), name, scene)
+            UUID owner, IScene scene, string name ):base(type,plot,flags,owner,scene,name)
         {
             //  Start the process of constructing a building given the parameters specified. For
             // truly random buildings change the following value (6) too another number, this is
             // used to allow for the buildings to be fairly fixed during research and development.
-            buildingSeed = 6; // TODO FIX ACCESS TO THE CityModule.randomValue(n) code.
-            buildingType = type;
-            buildingPlot = plot;
-            buildingFlags = flags;
+            BuildingSeed = 6; // TODO FIX ACCESS TO THE CityModule.randomValue(n) code.
+            BuildingType = type;
+            BuildingPlot = plot;
+            BuildingFlags = flags;
             //  Has a valid owner been specified, if not use the default library owner (i think) of the zero uuid.
             if (!owner.Equals(UUID.Zero))
-                buildingOwner = owner;
+                BuildingOwner = owner;
             else
-                buildingOwner = UUID.Zero;
+                BuildingOwner = UUID.Zero;
 
             //  Generate a unique value for this building and it's own group if it's part of a complex,
             // otherwise use the zero uuid for group (perhaps it should inherit from the city?)
-            buildingUUID = UUID.Random();
-            buildingGUID = UUID.Random();
+            BuildingUUID = UUID.Random();
+            BuildingGUID = UUID.Random();
 
-            buildingCenter = new Vector3((plot.XPos + plot.Width / 2), 21, (plot.YPos + plot.Depth) / 2);
+            BuildingCenter = new Vector3((plot.XPos + plot.Width / 2), 21, (plot.YPos + plot.Depth) / 2);
             if (name.Length > 0)
-                buildingName = name;
+                BuildingName = name;
             else
-                buildingName = "Building" + type.ToString();
+                BuildingName = "Building" + type.ToString();
             //  Now that internal variables that are used by other methods have been set construct
             // the building based on the type, plot, flags and seed given in the parameters.
             switch (type)
