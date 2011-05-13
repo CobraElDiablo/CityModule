@@ -489,6 +489,12 @@ namespace Aurora.Modules.CityBuilder
             // regions if desired. No support for aging of the buildings or the city exists
             // yet it is a possible course for the future of this module.
 
+            //  TODO
+            //
+            //      Validate the details in the configuration file against the settings in
+            // the database, otherwise a new user/estate/parcel could be created which will
+            // negate any of the security systems that Aurora has in place.
+
             //  First quick check to see if the module is enabled or not.
             if (!m_fEnabled)
             {
@@ -515,6 +521,9 @@ namespace Aurora.Modules.CityBuilder
             r = Convert.ToInt32(regionCount);
             m_log.InfoFormat("[CITY BUILDER]: City area {0} x {1} regions ", r, r);
 
+            //  Needs to be changed to use the 'defualt' properties and ask about the default
+            // estate settings that are to be used, even if it is nothing more than just a
+            // confirmation of the settings that are in the configuration file.
             cityName = MainConsole.Instance.CmdPrompt("City Name ", cityName);
             cityOwner = MainConsole.Instance.CmdPrompt("City Owner ", cityOwner);
             m_DefaultUserName = cityOwner;
@@ -576,7 +585,8 @@ namespace Aurora.Modules.CityBuilder
                 else
                 {
                     //  Estates have been found, select the first estate in the list. No checking is done
-                    // against the configuration file settings.
+                    // against the configuration file settings. TODO validate the estate against the 
+                    // configuration file.
                     m_DefaultEstate = estates[0];
                     regionInfo.EstateSettings = m_DefaultEstate;
                     m_log.InfoFormat("[CITY BUILDER]: {0} estates found for user {1}, selecting {2}",
