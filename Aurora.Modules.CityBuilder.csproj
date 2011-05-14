@@ -32,27 +32,90 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Aurora.BotManager, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="Aurora.CoreApplicationPlugins, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="Aurora.DataManager, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="Aurora.Framework, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="Aurora.Modules, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="Aurora.Services.DataService, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="Aurora.Simulation.Base, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="DotNetOpenId, Version=2.6.0.8354, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="log4net, Version=1.2.10.0, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="Nini, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="OpenMetaverse, Version=0.0.0.33007, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="OpenMetaverse.StructuredData, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="OpenMetaverseTypes, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="OpenSim.Data, Version=0.6.5.24964, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="OpenSim.Framework, Version=0.1.4144.24864, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="OpenSim.Region.ClientStack.LindenUDP, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="OpenSim.Region.CoreModules, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="OpenSim.Region.Framework, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="OpenSim.Region.OptionalModules, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="OpenSim.Services, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
-    <Reference Include="SmartThreadPool, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
+    <Reference Include="Aurora.BotManager, Version=0.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\TeamCity\Aurora-Sim\bin\Aurora.BotManager.dll</HintPath>
+    </Reference>
+    <Reference Include="Aurora.CoreApplicationPlugins, Version=0.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\TeamCity\Aurora-Sim\bin\Aurora.CoreApplicationPlugins.dll</HintPath>
+    </Reference>
+    <Reference Include="Aurora.DataManager, Version=0.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\TeamCity\Aurora-Sim\bin\Aurora.DataManager.dll</HintPath>
+    </Reference>
+    <Reference Include="Aurora.Framework, Version=0.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\TeamCity\Aurora-Sim\bin\Aurora.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="Aurora.Modules, Version=0.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\TeamCity\Aurora-Sim\bin\Aurora.Modules.dll</HintPath>
+    </Reference>
+    <Reference Include="Aurora.ScriptEngine.AuroraDotNetEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\TeamCity\Aurora-Sim\bin\Aurora.ScriptEngine.AuroraDotNetEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="Aurora.Services.DataService, Version=0.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\TeamCity\Aurora-Sim\bin\Aurora.Services.DataService.dll</HintPath>
+    </Reference>
+    <Reference Include="Aurora.Simulation.Base, Version=0.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\TeamCity\Aurora-Sim\bin\Aurora.Simulation.Base.dll</HintPath>
+    </Reference>
+    <Reference Include="CSJ2K, Version=1.0.4117.33006, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\TeamCity\Aurora-Sim\bin\CSJ2K.dll</HintPath>
+    </Reference>
+    <Reference Include="DotNetOpenId, Version=2.6.0.8354, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\TeamCity\Aurora-Sim\bin\DotNetOpenId.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net, Version=1.2.10.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\TeamCity\Aurora-Sim\bin\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="Nini, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\TeamCity\Aurora-Sim\bin\Nini.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenMetaverse, Version=0.0.0.33007, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\TeamCity\Aurora-Sim\bin\OpenMetaverse.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenMetaverse.StructuredData, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\TeamCity\Aurora-Sim\bin\OpenMetaverse.StructuredData.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenMetaverseTypes, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\TeamCity\Aurora-Sim\bin\OpenMetaverseTypes.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenSim.Data, Version=0.6.5.22894, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\TeamCity\Aurora-Sim\bin\OpenSim.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenSim.Framework, Version=0.1.4151.22891, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\TeamCity\Aurora-Sim\bin\OpenSim.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenSim.Region.CoreModules, Version=0.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\TeamCity\Aurora-Sim\bin\OpenSim.Region.CoreModules.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenSim.Region.Framework, Version=0.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\TeamCity\Aurora-Sim\bin\OpenSim.Region.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenSim.Services, Version=0.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\TeamCity\Aurora-Sim\bin\OpenSim.Services.dll</HintPath>
+    </Reference>
+    <Reference Include="SmartThreadPool, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\TeamCity\Aurora-Sim\bin\SmartThreadPool.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
