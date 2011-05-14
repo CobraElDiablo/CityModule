@@ -1,5 +1,15 @@
-﻿using System;
+﻿/*
+ *  $filename   ::  ICityBuilding.cs
+ *  $namespace  ::  Aurora.Framework
+ *  $purpose    ::  Provides an interface between City Builder editor and plugin.
+ *  $author     ::  Cobra El Diablo
+ */
+
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
@@ -18,6 +28,12 @@ using Aurora.Modules.CityBuilder;
 
 namespace Aurora.Framework
 {
+    /// <summary>
+    /// Interface used for communications between the City Builder plugin for Aurora and the GUI
+    /// editor for City Building which is used to provice an initial data source for the plugin
+    /// to operate on producing a data amplification at runtime reducing the communications between
+    /// the plugin and Aurora's runtimes.
+    /// </summary>
     [Serializable]
     public class ICityBuilding : SceneObjectGroup
     {
@@ -41,85 +57,85 @@ namespace Aurora.Framework
         private Scene scene = null; // Which scene or region this building belongs too, needed to primitive manipulation.
         #endregion
         #region ICityBuilding Public Properties
-
+        [BrowsableAttribute(true), DefaultValue("(none)"), Category("CityBuildingInternals")]
         public string BuildingName
         {
             get { return buildingName; }
             set { buildingName = value; }
         }
-
+        [BrowsableAttribute(true), Category("CityBuildingInternals")]
         public BuildingType BuildingType
         {
             get { return (buildingType); }
             set { buildingType = value; }
         }
-
+        [BrowsableAttribute(true), Category("CityBuildingInternals")]
         public BuildingFlags BuildingFlags
         {
             get { return (BuildingFlags); }
             set { BuildingFlags = value; }
         }
-
+        [BrowsableAttribute(true), Category("CityBuildingInternals")]
         public Vector3 BuildingCenter 
         {
             get { return (buildingCenter); }
             set { buildingCenter = value; }
         }
-
+        [BrowsableAttribute(true), Category("CityBuildingInternals")]
         public BuildingPlot BuildingPlot
         {
             get { return (buildingPlot); }
             set { buildingPlot = value; }
         }
-
+        [BrowsableAttribute(true), Category("CityBuildingInternals")]
         public int BuildingHeight
         {
             get { return (buildingHeight); }
             set { buildingHeight = value; }
         }
-
+        [BrowsableAttribute(true), Category("CityBuildingInternals")]
         public List<UUID> BuildingTextures
         {
             get { return (buildingTextures); }
             set { buildingTextures = value; }
         }
-
+        [BrowsableAttribute(true), Category("CityBuildingInternals")]
         public int BuildingSeed
         {
             get { return (buildingSeed); }
             set { buildingSeed = value; }
         }
-
+        [BrowsableAttribute(true), Category("CityBuildingInternals")]
         public int BuildingRoofTiers
         {
             get { return (buildingRoofTiers); }
             set { buildingRoofTiers = value; }
         }
-
+        [BrowsableAttribute(true), Category("CityBuildingInternals")]
         public Vector4 BuildingColour
         {
             get { return (buildingColour); }
             set { buildingColour = value; }
         }
-
+        [BrowsableAttribute(true), Category("CityBuildingInternals")]
         public Vector4 BuildingTrimColour
         {
             get { return (buildingTrimColour); }
             set { buildingTrimColour = value; }
         }
-
+        [BrowsableAttribute(true), Category("CityBuildingInternals")]
         public UUID BuildingGUID
         {
             get { return (buildingGUID); }
             set { buildingGUID = value; }
         }
-
+        [BrowsableAttribute(true), Category("CityBuildingInternals")]
         public UUID BuildingUUID
         {
             get { return (buildingUUID); }
             set { buildingUUID = value; }
         }
-
+        [BrowsableAttribute(true), Category("CityBuildingInternals")]
         public UUID BuildingOwner
         {
             get { return (buildingOwner); }
@@ -127,12 +143,13 @@ namespace Aurora.Framework
         }
 
         #endregion
-        #region Constructors
-
+        #region ICityBuilding Constructors
+        /// <summary>
+        /// 
+        /// </summary>
         public ICityBuilding():base(null)
         {
         }
-
         /// <summary>
         /// Construct the building class instance from the given properties.
         /// </summary>
@@ -231,7 +248,6 @@ namespace Aurora.Framework
                     break;
             }
         }
-
         #endregion
     }
 }
