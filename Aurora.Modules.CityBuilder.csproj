@@ -8,8 +8,8 @@
     <ProjectGuid>{398C7A78-4756-4476-BA4D-48D480CCFB7A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Aurora.Modules.City</RootNamespace>
-    <AssemblyName>Aurora.Modules.City</AssemblyName>
+    <RootNamespace>Aurora.Modules.CityBuilder</RootNamespace>
+    <AssemblyName>Aurora.Modules.CityBuilder</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SignAssembly>false</SignAssembly>
@@ -18,7 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>TeamCity\Aurora-Sim\bin\</OutputPath>
+    <OutputPath>..\..\Aurora-Sim\bin\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
