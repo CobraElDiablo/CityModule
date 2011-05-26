@@ -4,6 +4,8 @@ using OpenSim.Region.Framework.Scenes;
 using Nini;
 using Nini.Config;
 
+using Aurora.Simulation.Base;
+
 namespace Aurora.Framework
 {
     /// <summary>
@@ -24,6 +26,10 @@ namespace Aurora.Framework
             get;
         }
         IConfigSource ConfigSource
+        {
+            get;
+        }
+        SimulationBase SimulationBase
         {
             get;
         }
